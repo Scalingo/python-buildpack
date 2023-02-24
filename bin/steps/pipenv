@@ -40,13 +40,10 @@ if [ ! "$SKIP_PIPENV_INSTALL" ]; then
             mcount "buildvar.PIP_EXTRA_INDEX_URL"
         fi
 
-        PIPENV_VERSION='2020.11.15'
+        PIPENV_VERSION='2023.2.18'
 
-        # Install pipenv.
-        # Due to weird old pip behavior and pipenv behavior, pipenv upgrades pip
-        # to latest if only --upgrade is specified. Specify upgrade strategy to
-        # avoid this eager behavior.
-        /app/.scalingo/python/bin/pip install "pipenv==${PIPENV_VERSION}" --upgrade --upgrade-strategy only-if-needed &> /dev/null
+
+        /app/.scalingo/python/bin/pip install --quiet --disable-pip-version-check --no-cache-dir "pipenv==${PIPENV_VERSION}"
 
         # Install the test dependencies, for CI.
         if [ "$INSTALL_TEST" ]; then

@@ -9,7 +9,7 @@ RSpec.shared_examples 'builds with the requested Python version' do |python_vers
         remote: -----> Python app detected
         remote: -----> Using Python version specified in runtime.txt
         remote: -----> Installing python-#{python_version}
-        remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+        remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
         remote: -----> Installing SQLite3
         remote: -----> Installing requirements with pip
         remote:        Collecting urllib3
@@ -179,11 +179,10 @@ RSpec.describe 'Python version support' do
   end
 
   context 'when runtime.txt contains python-3.6.15' do
-    let(:allow_failure) { false }
-    let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.6', allow_failure: allow_failure) }
+    let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.6', allow_failure: true) }
 
     context 'when using Heroku-18 or Heroku-20', stacks: %w[heroku-18 heroku-20] do
-      it 'builds with Python 3.6.15' do
+      it 'aborts the build with an EOL message' do
         app.deploy do |app|
           expect(clean_output(app.output)).to include(<<~OUTPUT)
             remote: -----> Python app detected
@@ -193,34 +192,49 @@ RSpec.describe 'Python version support' do
             remote:  !     therefore no longer receiving security updates:
             remote:  !     https://devguide.python.org/versions/#supported-versions
             remote:  !     
-            remote:  !     Upgrade to a newer Python version as soon as possible to keep your app secure.
-            remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     As such, it is no longer supported by the latest version of this buildpack.
             remote:  !     
-            remote: -----> Installing python-#{LATEST_PYTHON_3_6}
-            remote: -----> Installing pip 21.3.1, setuptools 59.6.0 and wheel 0.37.1
-            remote: -----> Installing SQLite3
-            remote: -----> Installing requirements with pip
-            remote:        Collecting urllib3
+            remote:  !     Please upgrade to a newer Python version. See:
+            remote:  !     https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     
           OUTPUT
-          expect(app.run('python -V')).to include("Python #{LATEST_PYTHON_3_6}")
         end
       end
     end
 
     context 'when using Heroku-22', stacks: %w[heroku-22] do
-      let(:allow_failure) { true }
-
       # Python 3.6 is EOL, so has not been built for newer stacks.
-      include_examples 'aborts the build with a runtime not available message', "python-#{LATEST_PYTHON_3_6}"
+      include_examples 'aborts the build with a runtime not available message', 'python-3.6.15'
     end
   end
 
-  context 'when runtime.txt contains python-3.7.15' do
+  context 'when runtime.txt contains python-3.7.16' do
     let(:allow_failure) { false }
     let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.7', allow_failure: allow_failure) }
 
     context 'when using Heroku-18 or Heroku-20', stacks: %w[heroku-18 heroku-20] do
-      include_examples 'builds with the requested Python version', LATEST_PYTHON_3_7
+      it 'builds with Python 3.7.16 but shows a deprecation warning' do
+        app.deploy do |app|
+          expect(clean_output(app.output)).to include(<<~OUTPUT)
+            remote: -----> Python app detected
+            remote: -----> Using Python version specified in runtime.txt
+            remote:  !     
+            remote:  !     Python 3.7 will reach its upstream end-of-life on June 27th, 2023, at which
+            remote:  !     point it will no longer receive security updates:
+            remote:  !     https://devguide.python.org/versions/#supported-versions
+            remote:  !     
+            remote:  !     Upgrade to a newer Python version as soon as possible to keep your app secure.
+            remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     
+            remote: -----> Installing python-#{LATEST_PYTHON_3_7}
+            remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+            remote: -----> Installing SQLite3
+            remote: -----> Installing requirements with pip
+            remote:        Collecting urllib3
+          OUTPUT
+          expect(app.run('python -V')).to include("Python #{LATEST_PYTHON_3_7}")
+        end
+      end
     end
 
     context 'when using Heroku-22', stacks: %w[heroku-22] do
@@ -231,7 +245,7 @@ RSpec.describe 'Python version support' do
     end
   end
 
-  context 'when runtime.txt contains python-3.8.15' do
+  context 'when runtime.txt contains python-3.8.16' do
     let(:allow_failure) { false }
     let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.8', allow_failure: allow_failure) }
 
@@ -247,16 +261,22 @@ RSpec.describe 'Python version support' do
     end
   end
 
-  context 'when runtime.txt contains python-3.9.15' do
+  context 'when runtime.txt contains python-3.9.16' do
     let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.9') }
 
     include_examples 'builds with the requested Python version', LATEST_PYTHON_3_9
   end
 
-  context 'when runtime.txt contains python-3.10.8' do
+  context 'when runtime.txt contains python-3.10.10' do
     let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.10') }
 
     include_examples 'builds with the requested Python version', LATEST_PYTHON_3_10
+  end
+
+  context 'when runtime.txt contains python-3.11.2' do
+    let(:app) { Hatchet::Runner.new('spec/fixtures/python_3.11') }
+
+    include_examples 'builds with the requested Python version', LATEST_PYTHON_3_11
   end
 
   context 'when runtime.txt contains pypy3.6-7.3.2' do
@@ -319,7 +339,7 @@ RSpec.describe 'Python version support' do
           remote: -----> Python version has changed from python-#{LATEST_PYTHON_3_9} to python-#{LATEST_PYTHON_3_10}, clearing cache
           remote: -----> No change in requirements detected, installing from cache
           remote: -----> Installing python-#{LATEST_PYTHON_3_10}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3

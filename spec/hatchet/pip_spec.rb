@@ -22,7 +22,7 @@ RSpec.describe 'Pip support' do
           remote: -----> No Python version was specified. Using the buildpack default: python-#{DEFAULT_PYTHON_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3
@@ -38,7 +38,7 @@ RSpec.describe 'Pip support' do
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> No change in requirements detected, installing from cache
           remote: -----> Using cached install of python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote: -----> Discovering process types
@@ -61,7 +61,7 @@ RSpec.describe 'Pip support' do
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Requirements file has been changed, clearing cached dependencies
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3
@@ -105,7 +105,7 @@ RSpec.describe 'Pip support' do
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable___local_package_pyproject_toml_0_0_1_finder.py <==
           remote: .*
-          remote: MAPPING = \{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\}
+          remote: MAPPING = \\{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\\}
           remote: .*
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable__.local_package_pyproject_toml-0.0.1.pth <==
@@ -129,7 +129,7 @@ RSpec.describe 'Pip support' do
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable___local_package_pyproject_toml_0_0_1_finder.py <==
           remote: .*
-          remote: MAPPING = \{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\}
+          remote: MAPPING = \\{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\\}
           remote: .*
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable__.local_package_pyproject_toml-0.0.1.pth <==
@@ -156,7 +156,7 @@ RSpec.describe 'Pip support' do
 
           ==> .heroku/python/lib/python.*/site-packages/__editable___local_package_pyproject_toml_0_0_1_finder.py <==
           .*
-          MAPPING = \{'local_package_pyproject_toml': '/app/packages/local_package_pyproject_toml/local_package_pyproject_toml'\}
+          MAPPING = \\{'local_package_pyproject_toml': '/app/packages/local_package_pyproject_toml/local_package_pyproject_toml'\\}
           .*
 
           ==> .heroku/python/lib/python.*/site-packages/__editable__.local_package_pyproject_toml-0.0.1.pth <==
@@ -187,7 +187,7 @@ RSpec.describe 'Pip support' do
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable___local_package_pyproject_toml_0_0_1_finder.py <==
           remote: .*
-          remote: MAPPING = \{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\}
+          remote: MAPPING = \\{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\\}
           remote: .*
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable__.local_package_pyproject_toml-0.0.1.pth <==
@@ -211,7 +211,7 @@ RSpec.describe 'Pip support' do
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable___local_package_pyproject_toml_0_0_1_finder.py <==
           remote: .*
-          remote: MAPPING = \{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\}
+          remote: MAPPING = \\{'local_package_pyproject_toml': '/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'\\}
           remote: .*
           remote: 
           remote: ==> .heroku/python/lib/python.*/site-packages/__editable__.local_package_pyproject_toml-0.0.1.pth <==
