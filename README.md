@@ -1,6 +1,6 @@
 # Buildpack: Python
 
-This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks) for Python apps, powered by [Pipenv](http://docs.pipenv.org/), [pip](https://pip.pypa.io/) and other excellent software.
+This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks) for Python apps, powered by [Pipenv](https://docs.pipenv.org/), [pip](https://pip.pypa.io/) and other excellent software.
 
 Recommended web frameworks include **Django** and **Flask**, among others. The recommended webserver is **Gunicorn**. There are no restrictions around what software can be used (as long as it's pip-installable). Web processes must bind to `$PORT`, and only the HTTP protocol is permitted for incoming connections.
 
@@ -9,7 +9,7 @@ Python packages with C dependencies that are not [available on the base image](h
 See it in Action
 ----------------
 
-```
+```bash
 $ ls
 my-application		requirements.txt	runtime.txt
 
@@ -44,21 +44,23 @@ See it in Action with Pipenv
 
 Current default Python Runtime: Python 3.11.2
 
-    $ ls
-    Pipfile		Pipfile.lock	Procfile	web.py
+```bash
+$ ls
+Pipfile		Pipfile.lock	Procfile	web.py
 
-    $ scalingo create my-python-app
+$ scalingo create my-python-app
 
-    $ git push scalingo master
-    …
-    -----> Python app detected
-    -----> Installing python-3.6.9
-    -----> Installing pip
-    -----> Installing requirements with Pipenv 2018.5.18…
-           ...
-           Installing dependencies from Pipfile…
-    -----> Discovering process types
-           Procfile declares types -> (none)
+$ git push scalingo master
+…
+-----> Python app detected
+-----> Installing python-3.6.9
+-----> Installing pip
+-----> Installing requirements with Pipenv 2018.5.18…
+        ...
+        Installing dependencies from Pipfile…
+-----> Discovering process types
+        Procfile declares types -> (none)
+```
 
 A `Pipfile` and a `Pipfile.lock` must be present at the root of your application's repository.
 
@@ -67,8 +69,9 @@ Specify a Buildpack Version
 
 You can specify the latest production release of this buildpack for upcoming builds of an existing application:
 
-    $ scalingo env-set BUILDPACK_URL=https://github.com/Scalingo/python-buildpack
-
+```bash
+scalingo env-set BUILDPACK_URL=https://github.com/Scalingo/python-buildpack
+```
 
 Specify a Python Runtime
 ------------------------
