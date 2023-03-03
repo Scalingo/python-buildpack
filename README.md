@@ -62,8 +62,6 @@ Current default Python Runtime: Python 3.11.2
 
 A `Pipfile` and a `Pipfile.lock` must be present at the root of your application's repository.
 
-Current default Python Runtime: Python 3.6.12
-
 Specify a Buildpack Version
 ---------------------------
 
