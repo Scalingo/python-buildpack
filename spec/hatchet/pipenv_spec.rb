@@ -2,6 +2,8 @@
 
 require_relative '../spec_helper'
 
+PIPENV_VERSION = '2023.2.18'
+
 RSpec.shared_examples 'builds using Pipenv with the requested Python version' do |python_version|
   it "builds with Python #{python_version}" do
     app.deploy do |app|
@@ -9,9 +11,9 @@ RSpec.shared_examples 'builds using Pipenv with the requested Python version' do
         remote: -----> Python app detected
         remote: -----> Using Python version specified in Pipfile.lock
         remote: -----> Installing python-#{python_version}
-        remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-        remote: -----> Installing dependencies with Pipenv 2020.11.15
-        remote:        Installing dependencies from Pipfile.lock \\(.*\\)...
+        remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+        remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+        remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
         remote: -----> Installing SQLite3
       REGEX
     end
@@ -43,8 +45,8 @@ RSpec.describe 'Pipenv support' do
           remote: -----> No Python version was specified. Using the buildpack default: python-#{DEFAULT_PYTHON_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
           remote:        Installing dependencies from Pipfile...
           remote: -----> Installing SQLite3
         OUTPUT
@@ -57,16 +59,16 @@ RSpec.describe 'Pipenv support' do
 
     it 'builds with the default Python version' do
       app.deploy do |app|
-        expect(clean_output(app.output)).to include(<<~OUTPUT)
+        expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
           remote: -----> Python app detected
           remote: -----> No Python version was specified. Using the buildpack default: python-#{DEFAULT_PYTHON_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
-          remote:        Installing dependencies from Pipfile.lock (aad8b1)...
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
           remote: -----> Installing SQLite3
-        OUTPUT
+        REGEX
       end
     end
   end
@@ -142,13 +144,12 @@ RSpec.describe 'Pipenv support' do
   end
 
   context 'with a Pipfile.lock containing python_version 3.6' do
-    let(:allow_failure) { false }
-    let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_python_3.6', allow_failure: allow_failure) }
+    let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_python_3.6', allow_failure: true) }
 
     context 'when using Heroku-18 or Heroku-20', stacks: %w[heroku-18 heroku-20] do
-      it 'builds with the latest Python 3.6' do
+      it 'aborts the build with an EOL message' do
         app.deploy do |app|
-          expect(clean_output(app.output)).to include(<<~OUTPUT)
+          expect(clean_output(app.output)).to match(Regexp.new(<<~OUTPUT))
             remote: -----> Python app detected
             remote: -----> Using Python version specified in Pipfile.lock
             remote:  !     
@@ -156,24 +157,19 @@ RSpec.describe 'Pipenv support' do
             remote:  !     therefore no longer receiving security updates:
             remote:  !     https://devguide.python.org/versions/#supported-versions
             remote:  !     
-            remote:  !     Upgrade to a newer Python version as soon as possible to keep your app secure.
-            remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     As such, it is no longer supported by the latest version of this buildpack.
             remote:  !     
-            remote: -----> Installing python-#{LATEST_PYTHON_3_6}
-            remote: -----> Installing pip 21.3.1, setuptools 59.6.0 and wheel 0.37.1
-            remote: -----> Installing dependencies with Pipenv 2020.11.15
-            remote:        Installing dependencies from Pipfile.lock (b8b71b)...
-            remote: -----> Installing SQLite3
+            remote:  !     Please upgrade to a newer Python version. See:
+            remote:  !     https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     
           OUTPUT
         end
       end
     end
 
     context 'when using Heroku-22', stacks: %w[heroku-22] do
-      let(:allow_failure) { true }
-
       # Python 3.6 is EOL, so has not been built for newer stacks.
-      include_examples 'aborts the build with a runtime not available message (Pipenv)', LATEST_PYTHON_3_6
+      include_examples 'aborts the build with a runtime not available message (Pipenv)', '3.6.15'
     end
   end
 
@@ -182,7 +178,27 @@ RSpec.describe 'Pipenv support' do
     let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_python_3.7', allow_failure: allow_failure) }
 
     context 'when using Heroku-18 or Heroku-20', stacks: %w[heroku-18 heroku-20] do
-      include_examples 'builds using Pipenv with the requested Python version', LATEST_PYTHON_3_7
+      it 'builds with the latest Python 3.7 but shows a deprecation warning' do
+        app.deploy do |app|
+          expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
+            remote: -----> Python app detected
+            remote: -----> Using Python version specified in Pipfile.lock
+            remote:  !     
+            remote:  !     Python 3.7 will reach its upstream end-of-life on June 27th, 2023, at which
+            remote:  !     point it will no longer receive security updates:
+            remote:  !     https://devguide.python.org/versions/#supported-versions
+            remote:  !     
+            remote:  !     Upgrade to a newer Python version as soon as possible to keep your app secure.
+            remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
+            remote:  !     
+            remote: -----> Installing python-#{LATEST_PYTHON_3_7}
+            remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+            remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+            remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
+            remote: -----> Installing SQLite3
+          REGEX
+        end
+      end
     end
 
     context 'when using Heroku-22', stacks: %w[heroku-22] do
@@ -221,25 +237,43 @@ RSpec.describe 'Pipenv support' do
     include_examples 'builds using Pipenv with the requested Python version', LATEST_PYTHON_3_10
   end
 
-  context 'with a Pipfile.lock containing python_full_version 3.10.4' do
+  context 'with a Pipfile.lock containing python_version 3.11' do
+    let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_python_3.11') }
+
+    it 'builds with the latest Python 3.11' do
+      app.deploy do |app|
+        expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
+          remote: -----> Python app detected
+          remote: -----> Using Python version specified in Pipfile.lock
+          remote: -----> Installing python-#{LATEST_PYTHON_3_11}
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
+          remote: -----> Installing SQLite3
+        REGEX
+      end
+    end
+  end
+
+  context 'with a Pipfile.lock containing python_full_version 3.10.7' do
     let(:allow_failure) { false }
     let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_python_full_version', allow_failure: allow_failure) }
 
     it 'builds with the outdated Python version specified' do
       app.deploy do |app|
-        expect(clean_output(app.output)).to include(<<~OUTPUT)
+        expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
           remote: -----> Python app detected
           remote: -----> Using Python version specified in Pipfile.lock
           remote:  !     
           remote:  !     A Python security update is available! Upgrade as soon as possible to: python-#{LATEST_PYTHON_3_10}
           remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
           remote:  !     
-          remote: -----> Installing python-3.10.4
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
-          remote:        Installing dependencies from Pipfile.lock (e047bc)...
+          remote: -----> Installing python-3.10.7
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
           remote: -----> Installing SQLite3
-        OUTPUT
+        REGEX
       end
     end
   end
@@ -280,15 +314,15 @@ RSpec.describe 'Pipenv support' do
 
     it 'builds with the Python version from runtime.txt' do
       app.deploy do |app|
-        expect(clean_output(app.output)).to include(<<~OUTPUT)
+        expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
           remote: -----> Python app detected
           remote: -----> Using Python version specified in runtime.txt
           remote: -----> Installing python-#{LATEST_PYTHON_3_10}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
-          remote:        Installing dependencies from Pipfile.lock (75eae0)...
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
           remote: -----> Installing SQLite3
-        OUTPUT
+        REGEX
       end
     end
   end
@@ -298,15 +332,15 @@ RSpec.describe 'Pipenv support' do
 
     it 'builds with Pipenv rather than pip' do
       app.deploy do |app|
-        expect(clean_output(app.output)).to include(<<~OUTPUT)
+        expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
           remote: -----> Python app detected
           remote: -----> Using Python version specified in Pipfile.lock
           remote: -----> Installing python-#{LATEST_PYTHON_3_10}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
-          remote:        Installing dependencies from Pipfile.lock (2d32e8)...
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Installing dependencies from Pipfile.lock \\(.+\\)...
           remote: -----> Installing SQLite3
-        OUTPUT
+        REGEX
       end
     end
   end
@@ -321,10 +355,10 @@ RSpec.describe 'Pipenv support' do
           remote: -----> No Python version was specified. Using the buildpack default: python-#{DEFAULT_PYTHON_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
-          remote: -----> Installing dependencies with Pipenv 2020.11.15
-          remote:        Your Pipfile.lock \\(aad8b1\\) is out of date. Expected: \\(2d32e8\\).
-          remote:        \\[DeployException\\]: .*
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
+          remote: -----> Installing dependencies with Pipenv #{PIPENV_VERSION}
+          remote:        Your Pipfile.lock \\(.+\\) is out of date. Expected: \\(.+\\).
+          remote:        .+
           remote:        ERROR:: Aborting deploy
         REGEX
       end

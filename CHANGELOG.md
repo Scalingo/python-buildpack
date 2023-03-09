@@ -3,6 +3,42 @@
 ## Unreleased
 
 
+## v228 (2023-02-21)
+
+- Drop support for Python 3.6 ([#1415](https://github.com/heroku/heroku-buildpack-python/pull/1415)).
+
+## v227 (2023-02-20)
+
+- Update pip from 22.3.1 to 23.0.1 for Python 3.7+ ([#1413](https://github.com/heroku/heroku-buildpack-python/pull/1413)).
+- Update pipenv from 2023.2.4 to 2023.2.18 for Python 3.7+ ([#1412](https://github.com/heroku/heroku-buildpack-python/pull/1412)).
+
+## v226 (2023-02-14)
+
+- Use Python 3.11 as the default Python version for new apps (previously Python 3.10) ([#1408](https://github.com/heroku/heroku-buildpack-python/pull/1408)).
+- Update wheel from 0.37.1 to 0.38.4 for Python 3.7+ ([#1409](https://github.com/heroku/heroku-buildpack-python/pull/1409)).
+
+## v225 (2023-02-08)
+
+- Python 3.10.10 and 3.11.2 are now available ([#1405](https://github.com/heroku/heroku-buildpack-python/pull/1405)).
+- The default Python version for new apps is now 3.10.10 (previously 3.10.9) ([#1405](https://github.com/heroku/heroku-buildpack-python/pull/1405)).
+- Update Pipenv from 2020.11.15 to: ([#1407](https://github.com/heroku/heroku-buildpack-python/pull/1407))
+  - 2022.4.8 for Python 3.6
+  - 2023.2.4 for Python 3.7+
+- Add a deprecation warning for Python 3.7 ([#1404](https://github.com/heroku/heroku-buildpack-python/pull/1404)).
+
+## v224 (2022-12-07)
+
+- Python 3.7.16, 3.8.16, 3.9.16, 3.10.9 and 3.11.1 are now available ([#1392](https://github.com/heroku/heroku-buildpack-python/pull/1392)).
+- The default Python version for new apps is now 3.10.9 (previously 3.10.8) ([#1392](https://github.com/heroku/heroku-buildpack-python/pull/1392)).
+
+## v223 (2022-11-07)
+
+- Update pip from 22.2.2 to 22.3.1 for Python 3.7+ ([#1387](https://github.com/heroku/heroku-buildpack-python/pull/1387)).
+
+## v222 (2022-10-25)
+
+- Add support for Python 3.11 ([#1379](https://github.com/heroku/heroku-buildpack-python/pull/1379)).
+
 ## v221 (2022-10-12)
 
 - Python 3.7.15, 3.8.15, 3.9.15 and 3.10.8 are now available ([#1376](https://github.com/heroku/heroku-buildpack-python/pull/1376)).

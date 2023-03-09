@@ -31,7 +31,7 @@ RSpec.describe 'Stack changes' do
           remote: -----> Stack has changed from heroku-20 to heroku-22, clearing cache
           remote: -----> No change in requirements detected, installing from cache
           remote: -----> Installing python-3.10.5
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3
@@ -56,14 +56,14 @@ RSpec.describe 'Stack changes' do
           remote: -----> No Python version was specified. Using the same version as the last build: python-#{DEFAULT_PYTHON_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.34' not found (required by python)
-          remote: python: /lib/x86_64-linux-gnu/libm.so.6: version `GLIBC_2.35' not found (required by /app/.heroku/python/lib/libpython3.10.so.1.0)
-          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.33' not found (required by /app/.heroku/python/lib/libpython3.10.so.1.0)
-          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by /app/.heroku/python/lib/libpython3.10.so.1.0)
-          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.34' not found (required by /app/.heroku/python/lib/libpython3.10.so.1.0)
+          remote: python: /lib/x86_64-linux-gnu/libm.so.6: version `GLIBC_2.35' not found (required by /app/.heroku/python/lib/libpython3.11.so.1.0)
+          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.33' not found (required by /app/.heroku/python/lib/libpython3.11.so.1.0)
+          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.32' not found (required by /app/.heroku/python/lib/libpython3.11.so.1.0)
+          remote: python: /lib/x86_64-linux-gnu/libc.so.6: version `GLIBC_2.34' not found (required by /app/.heroku/python/lib/libpython3.11.so.1.0)
           remote: -----> Stack has changed from heroku-22 to heroku-20, clearing cache
           remote: -----> No change in requirements detected, installing from cache
           remote: -----> Installing python-#{DEFAULT_PYTHON_VERSION}
-          remote: -----> Installing pip 22.2.2, setuptools 63.4.3 and wheel 0.37.1
+          remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3

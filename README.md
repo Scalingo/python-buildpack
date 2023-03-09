@@ -1,6 +1,6 @@
 # Buildpack: Python
 
-This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks) for Python apps, powered by [Pipenv](http://docs.pipenv.org/), [pip](https://pip.pypa.io/) and other excellent software.
+This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks) for Python apps, powered by [Pipenv](https://docs.pipenv.org/), [pip](https://pip.pypa.io/) and other excellent software.
 
 Recommended web frameworks include **Django** and **Flask**, among others. The recommended webserver is **Gunicorn**. There are no restrictions around what software can be used (as long as it's pip-installable). Web processes must bind to `$PORT`, and only the HTTP protocol is permitted for incoming connections.
 
@@ -9,7 +9,7 @@ Python packages with C dependencies that are not [available on the base image](h
 See it in Action
 ----------------
 
-```
+```bash
 $ ls
 my-application		requirements.txt	runtime.txt
 
@@ -42,42 +42,44 @@ A `requirements.txt` must be present at the root of your application's repositor
 See it in Action with Pipenv
 ----------------------------
 
-Current default Python Runtime: Python 3.10.8
+Current default Python Runtime: Python 3.11.2
 
-    $ ls
-    Pipfile		Pipfile.lock	Procfile	web.py
+```bash
+$ ls
+Pipfile		Pipfile.lock	Procfile	web.py
 
-    $ scalingo create my-python-app
+$ scalingo create my-python-app
 
-    $ git push scalingo master
-    …
-    -----> Python app detected
-    -----> Installing python-3.6.9
-    -----> Installing pip
-    -----> Installing requirements with Pipenv 2018.5.18…
-           ...
-           Installing dependencies from Pipfile…
-    -----> Discovering process types
-           Procfile declares types -> (none)
+$ git push scalingo master
+…
+-----> Python app detected
+-----> Installing python-3.11.2
+-----> Installing pip
+-----> Installing requirements with Pipenv 2023.2.18…
+        ...
+        Installing dependencies from Pipfile…
+-----> Discovering process types
+        Procfile declares types -> (none)
+```
 
 A `Pipfile` and a `Pipfile.lock` must be present at the root of your application's repository.
-
-Current default Python Runtime: Python 3.6.12
 
 Specify a Buildpack Version
 ---------------------------
 
 You can specify the latest production release of this buildpack for upcoming builds of an existing application:
 
-    $ scalingo env-set BUILDPACK_URL=https://github.com/Scalingo/python-buildpack
-
+```bash
+scalingo env-set BUILDPACK_URL=https://github.com/Scalingo/python-buildpack
+```
 
 Specify a Python Runtime
 ------------------------
 
 Supported runtime options include:
 
-- `python-3.10.8` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.9.15` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.8.15` on Heroku-18 and Heroku-20 only
-- `python-3.7.15` on Heroku-18 and Heroku-20 only
+- `python-3.11.2` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
+- `python-3.10.10` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
+- `python-3.9.16` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
+- `python-3.8.16` on Heroku-18 and Heroku-20 only
+- `python-3.7.16` on Heroku-18 and Heroku-20 only
