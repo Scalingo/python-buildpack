@@ -197,7 +197,7 @@ if [[ -z "${BUNDLED_PIP_WHEEL}" ]]; then
   exit 1
 fi
 
-/app/.scalingo/python/bin/python "${PIP_WHEEL}/pip" install --quiet --disable-pip-version-check --no-cache-dir \
-  "${PIP_WHEEL}" "setuptools==${SETUPTOOLS_VERSION}" "wheel==${WHEEL_VERSION}"
+/app/.scalingo/python/bin/python "${BUNDLED_PIP_WHEEL}/pip" install --quiet --disable-pip-version-check --no-cache-dir \
+  "${BUNDLED_PIP_WHEEL}" "setuptools==${SETUPTOOLS_VERSION}" "wheel==${WHEEL_VERSION}"
 
 hash -r
