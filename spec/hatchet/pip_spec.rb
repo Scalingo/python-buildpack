@@ -25,8 +25,10 @@ RSpec.describe 'Pip support' do
           remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
-          remote:        Collecting urllib3
+          remote:        Collecting urllib3 \\(from -r requirements.txt \\(line 1\\)\\)
+          remote:          Obtaining dependency information for urllib3 from .*
           remote:          Downloading urllib3-.*
+          remote:        Downloading urllib3-.*
           remote:        Installing collected packages: urllib3
           remote:        Successfully installed urllib3-.*
         REGEX
@@ -64,10 +66,12 @@ RSpec.describe 'Pip support' do
           remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
-          remote:        Collecting urllib3
+          remote:        Collecting urllib3 \\(from -r requirements.txt \\(line 1\\)\\)
+          remote:          Obtaining dependency information for urllib3 from .*
           remote:          Downloading urllib3-.*
-          remote:        Collecting six
+          remote:        Collecting six \\(from -r requirements.txt \\(line 2\\)\\)
           remote:          Downloading six-.*
+          remote:        Downloading urllib3-.*
           remote:        Installing collected packages: urllib3, six
           remote:        Successfully installed six-.* urllib3-.*
         REGEX
@@ -89,7 +93,7 @@ RSpec.describe 'Pip support' do
 
   context 'when requirements.txt contains editable requirements' do
     let(:buildpacks) { [:default, 'heroku-community/inline'] }
-    let(:app) { Hatchet::Runner.new('spec/fixtures/requirements_editable', buildpacks: buildpacks) }
+    let(:app) { Hatchet::Runner.new('spec/fixtures/requirements_editable', buildpacks:) }
 
     it 'rewrites .pth, .egg-link and finder paths correctly for hooks, later buildpacks, runtime and cached builds' do
       app.deploy do |app|
@@ -248,7 +252,7 @@ RSpec.describe 'Pip support' do
       app.deploy do |app|
         expect(clean_output(app.output)).to include(<<~OUTPUT)
           remote: -----> Installing requirements with pip
-          remote:        Collecting urllib3
+          remote:        Collecting urllib3 (from -r requirements.txt (line 1))
         OUTPUT
         expect(app.output).not_to include('Running setup.py develop')
       end
