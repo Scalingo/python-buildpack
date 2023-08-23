@@ -188,7 +188,7 @@ puts-step "Installing pip ${PIP_VERSION}, setuptools ${SETUPTOOLS_VERSION} and w
 # matching pip wheels, since in some versions of Python (eg 3.9.0) multiple versions of pip
 # were accidentally bundled upstream. Note: This implementation relies upon `nullglob` being
 # set, which is the case thanks to the `bin/utils` that was run earlier.
-BUNDLED_PIP_WHEEL_LIST=(.heroku/python/lib/python*/ensurepip/_bundled/pip-*.whl)
+BUNDLED_PIP_WHEEL_LIST=(.scalingo/python/lib/python*/ensurepip/_bundled/pip-*.whl)
 BUNDLED_PIP_WHEEL="${BUNDLED_PIP_WHEEL_LIST[0]}"
 
 if [[ -z "${BUNDLED_PIP_WHEEL}" ]]; then
