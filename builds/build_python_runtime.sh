@@ -2,60 +2,75 @@
 
 set -euo pipefail
 
-# This is set by bob-builder from the "Build Path" comment line in the
-# build formula script that sourced this one.
-OUT_PREFIX=$1
-# The filename of the script that sourced this one (e.g. `python-3.10.0`).
-FORMULA_FILENAME=$(basename "${0}")
-# The version component (e.g. `3.10.0`).
-VERSION=$(echo "${FORMULA_FILENAME}" | cut --delimiter '-' --fields 2)
+PYTHON_VERSION="${1:?"Error: The Python version to build must be specified as the first argument."}"
+PYTHON_MAJOR_VERSION="${PYTHON_VERSION%.*}"
 
-echo "Building Python ${VERSION}..."
+INSTALL_DIR="/app/.heroku/python"
+SRC_DIR="/tmp/src"
+ARCHIVES_DIR="/tmp/upload/${STACK}/runtimes"
 
-if [[ "${STACK}" != "heroku-18" && "${STACK}" != "heroku-20" && "${VERSION}" == 3.[7-8].* ]]; then
-  echo "Python 3.7 and 3.8 are only supported on Heroku-20 and older!" >&2
-  echo "Override the default stacks list using: STACKS='heroku-18 heroku-20'" >&2
+function error() {
+  echo "Error: ${1}" >&2
   exit 1
-fi
+}
 
-# See: https://www.python.org/downloads/ -> "OpenPGP Public Keys"
-case "${VERSION}" in
-  3.1[0-1].*)
-    # https://keybase.io/pablogsal/
-    GPG_KEY_FINGERPRINT='A035C8C19219BA821ECEA86B64E628F8D684696D'
+case "${STACK}" in
+  heroku-22)
+    SUPPORTED_PYTHON_VERSIONS=(
+      "3.9"
+      "3.10"
+      "3.11"
+    )
     ;;
-  3.[8-9].*)
-    # https://keybase.io/ambv/
-    GPG_KEY_FINGERPRINT='E3FF2839C048B25C084DEBE9B26995E310250568'
-    ;;
-  3.7.*)
-    # https://keybase.io/nad/
-    GPG_KEY_FINGERPRINT='0D96DF4D4110E5C43FBFB17F2D347EA6AA65421D'
+  heroku-20)
+    SUPPORTED_PYTHON_VERSIONS=(
+      "3.8"
+      "3.9"
+      "3.10"
+      "3.11"
+    )
     ;;
   *)
-    echo "Unsupported Python version!" >&2
-    exit 1
+    error "Error: Unsupported stack '${STACK}'!"
     ;;
 esac
 
-SOURCE_URL="https://www.python.org/ftp/python/${VERSION}/Python-${VERSION}.tgz"
+if [[ ! " ${SUPPORTED_PYTHON_VERSIONS[*]} " == *" ${PYTHON_MAJOR_VERSION} "* ]]; then
+  error "Error: Python ${PYTHON_MAJOR_VERSION} is not supported on ${STACK}!"
+fi
+
+# The release keys can be found on https://www.python.org/downloads/ -> "OpenPGP Public Keys".
+case "${PYTHON_MAJOR_VERSION}" in
+  3.10|3.11)
+    # https://keybase.io/pablogsal/
+    GPG_KEY_FINGERPRINT='A035C8C19219BA821ECEA86B64E628F8D684696D'
+    ;;
+  3.8|3.9)
+    # https://keybase.io/ambv/
+    GPG_KEY_FINGERPRINT='E3FF2839C048B25C084DEBE9B26995E310250568'
+    ;;
+  *)
+    error "Error: Unsupported Python version '${PYTHON_MAJOR_VERSION}'!"
+    ;;
+esac
+
+echo "Building Python ${PYTHON_VERSION} for ${STACK}..."
+
+SOURCE_URL="https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz"
 SIGNATURE_URL="${SOURCE_URL}.asc"
 
 set -o xtrace
 
-curl --fail --retry 3 --retry-connrefused --connect-timeout 5 --max-time 60 -o python.tgz "${SOURCE_URL}"
-curl --fail --retry 3 --retry-connrefused --connect-timeout 5 --max-time 60 -o python.tgz.asc "${SIGNATURE_URL}"
+mkdir -p "${SRC_DIR}" "${INSTALL_DIR}" "${ARCHIVES_DIR}"
 
-# Skip GPG verification on Heroku-18 since it fails to fetch keys:
-# `gpg: keyserver receive failed: Server indicated a failure`
-if [[ "${STACK}" != "heroku-18" ]]; then
-  gpg --batch --verbose --recv-keys "${GPG_KEY_FINGERPRINT}"
-  gpg --batch --verify python.tgz.asc python.tgz
-fi
+curl --fail --retry 3 --retry-connrefused --connect-timeout 10 --max-time 60 -o python.tgz "${SOURCE_URL}"
+curl --fail --retry 3 --retry-connrefused --connect-timeout 10 --max-time 60 -o python.tgz.asc "${SIGNATURE_URL}"
 
-mkdir src
-tar --extract --file python.tgz --strip-components=1 --directory src/
-cd src
+gpg --batch --verbose --recv-keys "${GPG_KEY_FINGERPRINT}"
+gpg --batch --verify python.tgz.asc python.tgz
+
+tar --extract --file python.tgz --strip-components=1 --directory "${SRC_DIR}"
+cd "${SRC_DIR}"
 
 # Aim to keep this roughly consistent with the options used in the Python Docker images,
 # for maximum compatibility / most battle-tested build configuration:
@@ -63,10 +78,12 @@ cd src
 CONFIGURE_OPTS=(
   # Support loadable extensions in the `_sqlite` extension module.
   "--enable-loadable-sqlite-extensions"
+  # Enable recommended release build performance optimisations such as PGO.
+  "--enable-optimizations"
   # Make autoconf's configure option validation more strict.
   "--enable-option-checking=fatal"
   # Install Python into `/app/.heroku/python` rather than the default of `/usr/local`.
-  "--prefix=${OUT_PREFIX}"
+  "--prefix=${INSTALL_DIR}"
   # Skip running `ensurepip` as part of install, since the buildpack installs a curated
   # version of pip itself (which ensures it's consistent across Python patch releases).
   "--with-ensurepip=no"
@@ -75,17 +92,7 @@ CONFIGURE_OPTS=(
   "--with-system-expat"
 )
 
-if [[ "${VERSION}" != 3.7.* ]]; then
-  CONFIGURE_OPTS+=(
-    # Python 3.7 and older run the whole test suite for PGO, which takes
-    # much too long. Whilst this can be overridden via `PROFILE_TASK`, we
-    # prefer to change as few of the upstream build options as possible.
-    # As such, PGO is only enabled for Python 3.8+.
-    "--enable-optimizations"
-  )
-fi
-
-if [[ "${VERSION}" != 3.[7-9].* ]]; then
+if [[ "${PYTHON_MAJOR_VERSION}" != 3.[8-9] ]]; then
   CONFIGURE_OPTS+=(
     # Shared builds are beneficial for a number of reasons:
     # - Reduces the size of the build, since it avoids the duplication between
@@ -108,13 +115,12 @@ if [[ "${VERSION}" != 3.[7-9].* ]]; then
   )
 fi
 
-if [[ "${VERSION}" == 3.11.* ]]; then
+if [[ "${PYTHON_MAJOR_VERSION}" == "3.11" ]]; then
   CONFIGURE_OPTS+=(
     # Skip building the test modules, since we remove them after the build anyway.
     # This feature was added in Python 3.10+, however it wasn't until Python 3.11
     # that compatibility issues between it and PGO were fixed:
     # https://github.com/python/cpython/pull/29315
-    # TODO: See if a backport of that fix would be accepted to Python 3.10.
     "--disable-test-modules"
   )
 fi
@@ -128,7 +134,7 @@ fi
 make -j "$(nproc)" LDFLAGS='-Wl,--strip-all'
 make install
 
-if [[ "${VERSION}" == 3.[7-9].* ]]; then
+if [[ "${PYTHON_MAJOR_VERSION}" == 3.[8-9] ]]; then
   # On older versions of Python we're still building the static library, which has to be
   # manually stripped since the linker stripping enabled in LDFLAGS doesn't cover them.
   # We're using `--strip-unneeded` since `--strip-all` would remove the `.symtab` section
@@ -137,17 +143,16 @@ if [[ "${VERSION}" == 3.[7-9].* ]]; then
   # locations, eg:
   #   - `lib/libpython3.9.a`
   #   - `lib/python3.9/config-3.9-x86_64-linux-gnu/libpython3.9.a`
-  find "${OUT_PREFIX}" -type f -name '*.a' -print -exec strip --strip-unneeded '{}' +
-elif ! find "${OUT_PREFIX}" -type f -name '*.a' -print -exec false '{}' +; then
-  echo "Unexpected static libraries found!" >&2
-  exit 1
+  find "${INSTALL_DIR}" -type f -name '*.a' -print -exec strip --strip-unneeded '{}' +
+elif ! find "${INSTALL_DIR}" -type f -name '*.a' -print -exec false '{}' +; then
+  error "Error: Unexpected static libraries found!"
 fi
 
 # Remove unneeded test directories, similar to the official Docker Python images:
 # https://github.com/docker-library/python
 # This is a no-op on Python 3.11+, since --disable-test-modules will have prevented
 # the test files from having been built in the first place.
-find "${OUT_PREFIX}" -depth -type d -a \( -name 'test' -o -name 'tests' -o -name 'idle_test' \) -print -exec rm -rf '{}' +
+find "${INSTALL_DIR}" -depth -type d -a \( -name 'test' -o -name 'tests' -o -name 'idle_test' \) -print -exec rm -rf '{}' +
 
 # The `make install` step automatically generates `.pyc` files for the stdlib, however:
 # - It generates these using the default `timestamp` invalidation mode, which does
@@ -167,17 +172,26 @@ find "${OUT_PREFIX}" -depth -type d -a \( -name 'test' -o -name 'tests' -o -name
 # https://docs.python.org/3/library/compileall.html
 # https://peps.python.org/pep-0488/
 # https://peps.python.org/pep-0552/
-find "${OUT_PREFIX}" -depth -type f -name "*.pyc" -delete
+find "${INSTALL_DIR}" -depth -type f -name "*.pyc" -delete
 # We use the Python binary from the original build output in the source directory,
-# rather than the installed binary in `$OUT_PREFIX`, for parity with the automatic
+# rather than the installed binary in `$INSTALL_DIR`, for parity with the automatic
 # `.pyc` generation run by `make install`:
-# https://github.com/python/cpython/blob/v3.10.4/Makefile.pre.in#L1603-L1629
-LD_LIBRARY_PATH="${PWD}" ./python -m compileall -f --invalidation-mode unchecked-hash --workers 0 "${OUT_PREFIX}"
+# https://github.com/python/cpython/blob/v3.11.3/Makefile.pre.in#L2087-L2113
+LD_LIBRARY_PATH="${SRC_DIR}" "${SRC_DIR}/python" -m compileall -f --invalidation-mode unchecked-hash --workers 0 "${INSTALL_DIR}"
 
 # Support using Python 3 via the version-less `python` command, for parity with virtualenvs,
 # the Python Docker images and to also ensure buildpack Python shadows any installed system
 # Python, should that provide a version-less alias too.
 # This symlink must be relative, to ensure that the Python install remains relocatable.
-ln -srvT "${OUT_PREFIX}/bin/python3" "${OUT_PREFIX}/bin/python"
+ln -srvT "${INSTALL_DIR}/bin/python3" "${INSTALL_DIR}/bin/python"
 
-du --max-depth 1 --human-readable "${OUT_PREFIX}"
+cd "${ARCHIVES_DIR}"
+
+# The tar file is gzipped separately, so we can set a higher gzip compression level than
+# the default. In the future we'll also want to create a second archive that used zstd.
+TAR_FILENAME="python-${PYTHON_VERSION}.tar"
+tar --create --format=pax --sort=name --verbose --file "${TAR_FILENAME}" --directory="${INSTALL_DIR}" .
+gzip --best "${TAR_FILENAME}"
+
+du --max-depth 1 --human-readable "${INSTALL_DIR}"
+du --all --human-readable "${ARCHIVES_DIR}"

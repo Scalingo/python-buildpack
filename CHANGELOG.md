@@ -3,6 +3,42 @@
 ## Unreleased
 
 
+## v234 (2023-07-24)
+
+- Updated pip from 23.1.2 to 23.2.1. ([#1465](https://github.com/heroku/heroku-buildpack-python/pull/1465) and [#1470](https://github.com/heroku/heroku-buildpack-python/pull/1470))
+- Updated setuptools from 67.8.0 to 68.0.0. ([#1467](https://github.com/heroku/heroku-buildpack-python/pull/1467))
+- Updated wheel from 0.40.0 to 0.41.0. ([#1469](https://github.com/heroku/heroku-buildpack-python/pull/1469))
+- Updated pipenv from 2023.2.4 to 2023.7.23. ([#1468](https://github.com/heroku/heroku-buildpack-python/pull/1468) and [#1471](https://github.com/heroku/heroku-buildpack-python/pull/1471))
+- Update the Python 3.7 deprecation message to reflect that it has now reached end-of-life. ([#1460](https://github.com/heroku/heroku-buildpack-python/pull/1460))
+
+## v233 (2023-06-07)
+
+- Python 3.7.17, 3.8.17, 3.9.17, 3.10.12 and 3.11.4 are now available ([#1454](https://github.com/heroku/heroku-buildpack-python/pull/1454)).
+- The default Python version for new apps is now 3.11.4 (previously 3.11.3) ([#1454](https://github.com/heroku/heroku-buildpack-python/pull/1454)).
+- Updated setuptools from 67.7.2 to 67.8.0. ([#1456](https://github.com/heroku/heroku-buildpack-python/pull/1456))
+- Removed support for Heroku-18. ([#1449](https://github.com/heroku/heroku-buildpack-python/pull/1449))
+
+## v232 (2023-04-27)
+
+- Updated pip from 23.0.1 to 23.1.2. ([#1441](https://github.com/heroku/heroku-buildpack-python/pull/1441))
+- Updated setuptools from 67.6.1 to 67.7.2. ([#1441](https://github.com/heroku/heroku-buildpack-python/pull/1441))
+- The pip bootstrap step is now performed using the pip wheel bundled with the Python stdlib, rather than one downloaded from S3. ([#1442](https://github.com/heroku/heroku-buildpack-python/pull/1442) and [#1444](https://github.com/heroku/heroku-buildpack-python/pull/1444))
+
+## v231 (2023-04-12)
+
+- Updated setuptools from 63.4.3 to 67.6.1. ([#1437](https://github.com/heroku/heroku-buildpack-python/pull/1437))
+- Updated wheel from 0.38.4 to 0.40.0. ([#1437](https://github.com/heroku/heroku-buildpack-python/pull/1437))
+- Raise curl connection timeout threshold from 5 to 10 seconds. ([#1439](https://github.com/heroku/heroku-buildpack-python/pull/1439))
+
+## v230 (2023-04-06)
+
+- Python 3.10.11 and 3.11.3 are now available ([#1433](https://github.com/heroku/heroku-buildpack-python/pull/1433)).
+- The default Python version for new apps is now 3.11.3 (previously 3.11.2) ([#1433](https://github.com/heroku/heroku-buildpack-python/pull/1433)).
+
+## v229 (2023-03-10)
+
+- Downgrade pipenv from 2023.2.18 to 2023.2.4 ([#1425](https://github.com/heroku/heroku-buildpack-python/pull/1425)).
+
 ## v228 (2023-02-21)
 
 - Drop support for Python 3.6 ([#1415](https://github.com/heroku/heroku-buildpack-python/pull/1415)).
