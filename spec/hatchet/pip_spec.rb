@@ -26,7 +26,6 @@ RSpec.describe 'Pip support' do
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3 \\(from -r requirements.txt \\(line 1\\)\\)
-          remote:          Obtaining dependency information for urllib3 from .*
           remote:          Downloading urllib3-.*
           remote:        Downloading urllib3-.*
           remote:        Installing collected packages: urllib3
@@ -67,11 +66,11 @@ RSpec.describe 'Pip support' do
           remote: -----> Installing SQLite3
           remote: -----> Installing requirements with pip
           remote:        Collecting urllib3 \\(from -r requirements.txt \\(line 1\\)\\)
-          remote:          Obtaining dependency information for urllib3 from .*
           remote:          Downloading urllib3-.*
           remote:        Collecting six \\(from -r requirements.txt \\(line 2\\)\\)
           remote:          Downloading six-.*
           remote:        Downloading urllib3-.*
+          remote:        Downloading six-.*
           remote:        Installing collected packages: urllib3, six
           remote:        Successfully installed six-.* urllib3-.*
         REGEX
@@ -98,7 +97,6 @@ RSpec.describe 'Pip support' do
     it 'rewrites .pth, .egg-link and finder paths correctly for hooks, later buildpacks, runtime and cached builds' do
       app.deploy do |app|
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX, Regexp::MULTILINE))
-          remote:        Successfully installed gunicorn-20.1.0 local-package-pyproject-toml-0.0.1 local-package-setup-py-0.0.1
           remote: -----> Running post-compile hook
           remote: ==> .heroku/python/lib/python.*/site-packages/distutils-precedence.pth <==
           remote: .*
@@ -180,7 +178,6 @@ RSpec.describe 'Pip support' do
         app.commit!
         app.push!
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX, Regexp::MULTILINE))
-          remote:        Successfully installed gunicorn-20.1.0 local-package-pyproject-toml-0.0.1 local-package-setup-py-0.0.1
           remote: -----> Running post-compile hook
           remote: ==> .heroku/python/lib/python.*/site-packages/distutils-precedence.pth <==
           remote: .*
