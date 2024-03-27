@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 
+## [v246] - 2024-03-25
+
+- Updated pip from 23.3.2 to 24.0. ([#1541](https://github.com/heroku/heroku-buildpack-python/pull/1541))
+- Updated setuptools from 68.2.2 to 69.2.0. ([#1553](https://github.com/heroku/heroku-buildpack-python/pull/1553))
+- Updated wheel from 0.42.0 to 0.43.0. ([#1550](https://github.com/heroku/heroku-buildpack-python/pull/1550))
+- Updated pipenv from 2023.11.15 to 2023.12.1. ([#1540](https://github.com/heroku/heroku-buildpack-python/pull/1540))
+
+## [v245] - 2024-03-21
+
+- Added support for Python 3.8.19, 3.9.19 and 3.10.14. ([#1551](https://github.com/heroku/heroku-buildpack-python/pull/1551))
+
 ## [v244] - 2024-03-13
 
 - Improved the automatic `WEB_CONCURRENCY` feature: ([#1547](https://github.com/heroku/heroku-buildpack-python/pull/1547))
@@ -966,7 +977,9 @@ Default Python is now latest 2.7.10. Updated Pip and Distribute.
 - Setuptools updated to v16.0
 - Pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v244...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v246...main
+[v246]: https://github.com/heroku/heroku-buildpack-python/compare/v245...v246
+[v245]: https://github.com/heroku/heroku-buildpack-python/compare/v244...v245
 [v244]: https://github.com/heroku/heroku-buildpack-python/compare/v243...v244
 [v243]: https://github.com/heroku/heroku-buildpack-python/compare/v242...v243
 [v242]: https://github.com/heroku/heroku-buildpack-python/compare/v241...v242
