@@ -3,9 +3,35 @@
 ## [Unreleased]
 
 
+## [v252] - 2024-06-17
+
+- Removed export of `Pipfile.lock` to `requirements.txt` during the build. ([#1593](https://github.com/heroku/heroku-buildpack-python/pull/1593))
+- Removed internal `pipenv-to-pip` script that was unintentionally exposed onto `PATH`. ([#1593](https://github.com/heroku/heroku-buildpack-python/pull/1593))
+- Stopped exposing the internal `BIN_DIR`, `BPLOG_PREFIX`, `EXPORT_PATH` and `PROFILE_PATH` environment variables to `bin/{pre,post}_compile` and other subprocesses. ([#1595](https://github.com/heroku/heroku-buildpack-python/pull/1595) and [#1597](https://github.com/heroku/heroku-buildpack-python/pull/1597))
+- Implemented the `bin/report` build report API and removed log based metrics. ([#1597](https://github.com/heroku/heroku-buildpack-python/pull/1597))
+
+## [v251] - 2024-06-07
+
+- Added support for Python 3.12.4. ([#1591](https://github.com/heroku/heroku-buildpack-python/pull/1591))
+- Changed the default Python version for new apps from 3.12.3 to 3.12.4. ([#1591](https://github.com/heroku/heroku-buildpack-python/pull/1591))
+
+## [v250] - 2024-04-26
+
+- Added support for Heroku-24. ([#1575](https://github.com/heroku/heroku-buildpack-python/pull/1575))
+
+## [v249] - 2024-04-18
+
+- Improved the error message shown for EOL Python versions when using a stack for which those versions were never built. ([#1570](https://github.com/heroku/heroku-buildpack-python/pull/1570))
+- Fixed the "Python security update is available" warning being shown when the requested version is newer than the latest version known to the buildpack. ([#1569](https://github.com/heroku/heroku-buildpack-python/pull/1569))
+- Fixed glibc warnings seen when downgrading the stack version. ([#1568](https://github.com/heroku/heroku-buildpack-python/pull/1568))
+- Changed compression format and S3 URL for Python runtime archives. ([#1567](https://github.com/heroku/heroku-buildpack-python/pull/1567))
+- Adjusted compiler options used to build Python for improved parity with the Docker Hub Python images. ([#1566](https://github.com/heroku/heroku-buildpack-python/pull/1566))
+- Excluded `LD_LIBRARY_PATH` and `PYTHONHOME` app config vars when invoking subprocesses during the build. ([#1565](https://github.com/heroku/heroku-buildpack-python/pull/1565))
+
 ## [v248] - 2024-04-09
 
 - Added support for Python 3.12.3. ([#1560](https://github.com/heroku/heroku-buildpack-python/pull/1560))
+- Changed the default Python version for new apps from 3.12.2 to 3.12.3. ([#1560](https://github.com/heroku/heroku-buildpack-python/pull/1560))
 
 ## [v247] - 2024-04-08
 
@@ -985,7 +1011,11 @@ Default Python is now latest 2.7.10. Updated Pip and Distribute.
 - Setuptools updated to v16.0
 - Pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v248...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v252...main
+[v252]: https://github.com/heroku/heroku-buildpack-python/compare/v251...v252
+[v251]: https://github.com/heroku/heroku-buildpack-python/compare/v250...v251
+[v250]: https://github.com/heroku/heroku-buildpack-python/compare/v249...v250
+[v249]: https://github.com/heroku/heroku-buildpack-python/compare/v248...v249
 [v248]: https://github.com/heroku/heroku-buildpack-python/compare/v247...v248
 [v247]: https://github.com/heroku/heroku-buildpack-python/compare/v246...v247
 [v246]: https://github.com/heroku/heroku-buildpack-python/compare/v245...v246

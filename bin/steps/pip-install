@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-# shellcheck source=bin/utils
-source "$BIN_DIR/utils"
+if [[ -z "$SKIP_PIP_INSTALL" ]]; then
+    pip_install_start_time=$(nowms)
+    meta_set "package_manager" "pip"
 
-if [ ! "$SKIP_PIP_INSTALL" ]; then
-    # Install dependencies with Pip.
     puts-step "Installing requirements with pip"
 
     # Set Pip env vars
@@ -15,25 +14,22 @@ if [ ! "$SKIP_PIP_INSTALL" ]; then
     if [[ -r "$ENV_DIR/PIP_EXTRA_INDEX_URL" ]]; then
         PIP_EXTRA_INDEX_URL="$(cat "$ENV_DIR/PIP_EXTRA_INDEX_URL")"
         export PIP_EXTRA_INDEX_URL
-        mcount "buildvar.PIP_EXTRA_INDEX_URL"
     fi
 
     set +e
-
-    # Measure that we're using pip.
-    mcount "tool.pip"
 
     if [ ! -f "$BUILD_DIR/.scalingo/python/bin/pip" ]; then
         exit 1
     fi
 
-    /app/.scalingo/python/bin/pip install -r "$BUILD_DIR/requirements.txt" --exists-action=w --src=/app/.scalingo/src --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
+    /app/.scalingo/python/bin/pip install -r "$BUILD_DIR/requirements.txt" --exists-action=w --src="/app/.scalingo/src" --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
     PIP_STATUS="${PIPESTATUS[0]}"
     set -e
 
     show-warnings
 
     if [[ ! $PIP_STATUS -eq 0 ]]; then
+        meta_set "failure_reason" "pip-install"
         exit 1
     fi
 
@@ -41,10 +37,12 @@ if [ ! "$SKIP_PIP_INSTALL" ]; then
     /app/.scalingo/python/bin/pip freeze --disable-pip-version-check > .scalingo/python/requirements-installed.txt
 
     # Install test dependencies, for CI.
-    if [ "$INSTALL_TEST" ]; then
+    if [[ -n "$INSTALL_TEST" ]]; then
         if [[ -f requirements-test.txt ]]; then
             puts-step "Installing test dependencies…"
-            /app/.scalingo/python/bin/pip install -r "$1/requirements-test.txt" --exists-action=w --src=./.scalingo/src --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
+            /app/.scalingo/python/bin/pip install -r "${1}/requirements-test.txt" --exists-action=w --src="./.scalingo/src" --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
         fi
     fi
+
+    meta_time "dependencies_install_duration" "${pip_install_start_time}"
 fi
