@@ -7,15 +7,6 @@ PYTHON_VERSION=$(cat runtime.txt)
 PYTHON_VERSION="${PYTHON_VERSION##+([[:space:]])}"
 PYTHON_VERSION="${PYTHON_VERSION%%+([[:space:]])}"
 
-# The location of the pre-compiled python binary.
-PYTHON_URL="${S3_BASE_URL}/${STACK}/runtimes/${PYTHON_VERSION}.tar.gz"
-
-if ! curl --output /dev/null --silent --head --fail --retry 3 --retry-connrefused --connect-timeout 10 "${PYTHON_URL}"; then
-  puts-warn "Requested runtime '${PYTHON_VERSION}' is not available for this stack (${STACK})."
-  puts-warn "For supported versions, see: https://doc.scalingo.com/languages/python/start"
-  exit 1
-fi
-
 function eol_python_version_error() {
   local major_version="${1}"
   local eol_date="${2}"
@@ -57,9 +48,8 @@ PYTHON_URL="${S3_BASE_URL}/${PYTHON_VERSION}-ubuntu-${UBUNTU_VERSION}-${ARCH}.ta
 if ! curl --output /dev/null --silent --head --fail --retry 3 --retry-connrefused --connect-timeout 10 "${PYTHON_URL}"; then
   puts-warn
   puts-warn "Requested runtime '${PYTHON_VERSION}' is not available for this stack (${STACK})."
-  puts-warn
-  puts-warn "For a list of the supported Python versions, see:"
-  puts-warn "https://devcenter.heroku.com/articles/python-support#supported-runtimes"
+  puts-warn "For a list of supported Python versions, see:"
+  puts-warn "https://doc.scalingo.com/languages/python/start"
   puts-warn
   meta_set "failure_reason" "python-version-not-found"
   exit 1
