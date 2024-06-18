@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Usage: bin/compile <build-dir>
+# See: https://devcenter.heroku.com/articles/buildpack-api
 
 # This script serves as the
 # [**Python Buildpack**](https://github.com/Scalingo/python-buildpack)
@@ -6,16 +8,12 @@
 #
 # A [buildpack](https://doc.scalingo.com/buildpacks) is an adapter between a
 # Python application and Scalingo's runtime.
+set -euo pipefail
 
-# ## Usage
-# Compiling an app into a slug is simple:
-#
-#     $ bin/detect <build-dir> <cache-dir>
-
-BUILD_DIR=$1
+BUILD_DIR="${1}"
 
 # Exit early if app is clearly not Python.
-if [ ! -f "$BUILD_DIR/requirements.txt" ] && [ ! -f "$BUILD_DIR/setup.py" ] && [ ! -f "$BUILD_DIR/Pipfile" ]; then
+if [[ ! -f "$BUILD_DIR/requirements.txt" ]] && [[ ! -f "$BUILD_DIR/setup.py" ]] && [[ ! -f "$BUILD_DIR/Pipfile" ]]; then
   exit 1
 fi
 
