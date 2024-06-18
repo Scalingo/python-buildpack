@@ -183,12 +183,10 @@ if [[ -f runtime.txt ]]; then
 elif [[ -n "${CACHED_PYTHON_VERSION:-}" ]]; then
   puts-step "No Python version was specified. Using the same version as the last build: ${CACHED_PYTHON_VERSION}"
   echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start#supported-versions"
-  mcount "version.reason.python.cached"
   echo "${CACHED_PYTHON_VERSION}" > runtime.txt
 else
   puts-step "No Python version was specified. Using the buildpack default: ${DEFAULT_PYTHON_VERSION}"
   echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start#supported-versions"
-  mcount "version.reason.python.default"
   echo "${DEFAULT_PYTHON_VERSION}" > runtime.txt
 fi
 

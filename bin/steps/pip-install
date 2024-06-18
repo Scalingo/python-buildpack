@@ -18,9 +18,6 @@ if [[ -z "$SKIP_PIP_INSTALL" ]]; then
 
     set +e
 
-    # Measure that we're using pip.
-    mcount "tool.pip"
-
     if [ ! -f "$BUILD_DIR/.scalingo/python/bin/pip" ]; then
         exit 1
     fi

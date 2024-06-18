@@ -77,11 +77,9 @@ buildpack_sqlite3_install() {
   # https://stackoverflow.com/q/19789102
   # ...plus whoever wrote this forgot the `exit 1` in the `else` anyway.
   if sqlite3_install "$BUILD_DIR/.scalingo/python" ; then
-    # mcount "success.python.sqlite3"
     :
   else
     echo "Sqlite3 failed to install."
-    # mcount "failure.python.sqlite3"
   fi
 
   mkdir -p "$CACHE_DIR/.scalingo/"
