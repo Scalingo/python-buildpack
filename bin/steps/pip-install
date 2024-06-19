@@ -18,11 +18,7 @@ if [[ -z "$SKIP_PIP_INSTALL" ]]; then
 
     set +e
 
-    if [ ! -f "$BUILD_DIR/.scalingo/python/bin/pip" ]; then
-        exit 1
-    fi
-
-    /app/.scalingo/python/bin/pip install -r "$BUILD_DIR/requirements.txt" --exists-action=w --src="/app/.scalingo/src" --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
+    /app/.scalingo/python/bin/pip install -r "$BUILD_DIR/requirements.txt" --exists-action=w --src="${HOME}/.scalingo/src" --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
     PIP_STATUS="${PIPESTATUS[0]}"
     set -e
 
@@ -40,7 +36,7 @@ if [[ -z "$SKIP_PIP_INSTALL" ]]; then
     if [[ -n "$INSTALL_TEST" ]]; then
         if [[ -f requirements-test.txt ]]; then
             puts-step "Installing test dependencies…"
-            /app/.scalingo/python/bin/pip install -r "${1}/requirements-test.txt" --exists-action=w --src="./.scalingo/src" --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
+            /app/.scalingo/python/bin/pip install -r "${1}/requirements-test.txt" --exists-action=w --src="${HOME}/.scalingo/src" --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
         fi
     fi
 
