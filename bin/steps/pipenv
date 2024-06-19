@@ -46,8 +46,6 @@ if [[ -f Pipfile ]]; then
         /app/.scalingo/python/bin/pipenv install --system --skip-lock --extra-pip-args='--src=/app/.scalingo/src' 2>&1 | indent
 
     else
-        pipenv-to-pip Pipfile.lock > requirements.txt
-        cp requirements.txt .scalingo/python/requirements-declared.txt
         meta_set "pipenv_has_lockfile" "true"
         puts-step "Installing dependencies with Pipenv ${PIPENV_VERSION}"
         /app/.scalingo/python/bin/pipenv install --system --deploy --extra-pip-args='--src=/app/.scalingo/src' 2>&1 | indent
