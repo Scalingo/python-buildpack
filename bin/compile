@@ -175,7 +175,7 @@ if [[ ! -f requirements.txt && ! -f Pipfile && ! -f setup.py ]]; then
   puts-warn
   puts-warn "Error: Couldn't find any supported Python package manager files."
   puts-warn
-  puts-warn "A Python app on Heroku must have either a 'requirements.txt' or"
+  puts-warn "A Python app on Scalingo must have either a 'requirements.txt' or"
   puts-warn "'Pipfile' package manager file in the root directory of its"
   puts-warn "source code."
   puts-warn
@@ -194,9 +194,8 @@ if [[ ! -f requirements.txt && ! -f Pipfile && ! -f setup.py ]]; then
   puts-warn "Otherwise, add a package manager file to your app. If your app has"
   puts-warn "no dependencies, then create an empty 'requirements.txt' file."
   puts-warn
-  puts-warn "For help with using Python on Heroku, see:"
-  puts-warn "https://devcenter.heroku.com/articles/getting-started-with-python"
-  puts-warn "https://devcenter.heroku.com/articles/python-support"
+  puts-warn "For help with using Python on Scalingo, see:"
+  puts-warn "https://doc.scalingo.com/languages/python/start"
   puts-warn
   meta_set "failure_reason" "package-manager-not-found"
   exit 1

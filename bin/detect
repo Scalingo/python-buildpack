@@ -53,7 +53,7 @@ sed 's/^/ !     /' 1>&2 << EOF
 Error: Your app is configured to use the Python buildpack,
 but we couldn't find any supported Python project files.
 
-A Python app on Heroku must have either a 'requirements.txt' or
+A Python app on Scalingo must have either a 'requirements.txt' or
 'Pipfile' package manager file in the root directory of its
 source code.
 
@@ -70,9 +70,8 @@ If your app already has a package manager file, check that it:
 Otherwise, add a package manager file to your app. If your app has
 no dependencies, then create an empty 'requirements.txt' file.
 
-For help with using Python on Heroku, see:
-https://devcenter.heroku.com/articles/getting-started-with-python
-https://devcenter.heroku.com/articles/python-support
+For help with using Python on Scalingo, see:
+https://doc.scalingo.com/languages/python/start
 EOF
 
 exit 1
