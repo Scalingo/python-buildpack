@@ -17,12 +17,11 @@ function eol_python_version_error() {
 
     As such, it is no longer supported by this buildpack.
 
-    Please upgrade to a newer Python version. See:
-    https://doc.scalingo.com/languages/python/start
+    Please upgrade to a newer Python version.
 
-    For a list of the supported Python versions, see:
-    https://devcenter.heroku.com/articles/python-support#supported-runtimes
-  EOF
+    For a list of supported Python version, see:
+    https://doc.scalingo.com/languages/python/start
+EOF
   meta_set "failure_reason" "python-version-eol"
   exit 1
 }
@@ -50,11 +49,12 @@ ARCH=$(dpkg --print-architecture)
 PYTHON_URL="${S3_BASE_URL}/${PYTHON_VERSION}-ubuntu-${UBUNTU_VERSION}-${ARCH}.tar.zst"
 
 if ! curl --output /dev/null --silent --head --fail --retry 3 --retry-connrefused --connect-timeout 10 "${PYTHON_URL}"; then
-  puts-warn
-  puts-warn "Requested runtime '${PYTHON_VERSION}' is not available for this stack (${STACK})."
-  puts-warn "For a list of supported Python versions, see:"
-  puts-warn "https://doc.scalingo.com/languages/python/start"
-  puts-warn
+  display_error <<-EOF
+    Requested runtime '${PYTHON_VERSION}' is not available for this stack (${STACK}).
+
+    For a list of supported Python versions, see:
+    https://doc.scalingo.com/languages/python/start
+EOF
   meta_set "failure_reason" "python-version-not-found"
   exit 1
 fi
