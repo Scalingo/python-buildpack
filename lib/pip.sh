@@ -15,7 +15,7 @@ function pip::install_pip_setuptools_wheel() {
 
 	puts-step "Installing pip ${PIP_VERSION}, setuptools ${SETUPTOOLS_VERSION} and wheel ${WHEEL_VERSION}"
 
-	/app/.heroku/python/bin/python "${bundled_pip_module_path}" install --quiet --disable-pip-version-check --no-cache-dir \
+	/app/.scalingo/python/bin/python "${bundled_pip_module_path}" install --quiet --disable-pip-version-check --no-cache-dir \
 		"pip==${PIP_VERSION}" "setuptools==${SETUPTOOLS_VERSION}" "wheel==${WHEEL_VERSION}"
 }
 
@@ -40,7 +40,7 @@ function pip::install_dependencies() {
 	fi
 
 	set +e
-	/app/.heroku/python/bin/pip install "${args[@]}" --exists-action=w --src='/app/.heroku/src' --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
+	/app/.scalingo/python/bin/pip install "${args[@]}" --exists-action=w --src='/app/.scalingo/src' --disable-pip-version-check --no-cache-dir --progress-bar off 2>&1 | tee "$WARNINGS_LOG" | cleanup | indent
 	local PIP_STATUS="${PIPESTATUS[0]}"
 	set -e
 
@@ -55,7 +55,7 @@ function pip::install_dependencies() {
 	if [[ -n "${INSTALL_TEST}" ]]; then
 		if [[ -f requirements-test.txt ]]; then
 			puts-step "Installing test dependencies..."
-			/app/.heroku/python/bin/pip install -r requirements-test.txt --exists-action=w --src='/app/.heroku/src' --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
+			/app/.scalingo/python/bin/pip install -r requirements-test.txt --exists-action=w --src='/app/.scalingo/src' --disable-pip-version-check --no-cache-dir 2>&1 | cleanup | indent
 		fi
 	fi
 }
