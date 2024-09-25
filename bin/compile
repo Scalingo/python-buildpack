@@ -171,35 +171,6 @@ else
 	CACHED_PYTHON_STACK=$STACK
 fi
 
-# TODO: Move this into a new package manager handling implementation when adding Poetry support.
-# We intentionally don't mention `setup.py` here since it's being removed soon.
-if [[ ! -f requirements.txt && ! -f Pipfile && ! -f setup.py ]]; then
-  display_error <<-EOF
-    Error: Couldn't find any supported Python package manager files.
-
-    A Python app on Scalingo must have either a 'requirements.txt' or
-    'Pipfile' package manager file in the root directory of its source code.
-
-    Currently the root directory of your app contains:
-
-    $( ls -1 --indicator-style=slash "${BUILD_DIR}" | sed 's/^/ !     /' )
-
-    If your app already has a package manager file, check that it:
-
-    1. Is in the top level directory (not a subdirectory).
-    2. Has the correct spelling (the filenames are case-sensitive).
-    3. Isn't listed in '.gitignore' or '.slugignore'.
-
-    Otherwise, add a package manager file to your app. If your app has
-    no dependencies, then create an empty 'requirements.txt' file.
-
-    For help with using Python on Scalingo, see:
-    https://doc.scalingo.com/languages/python/start
-  EOF
-  meta_set "failure_reason" "package-manager-not-found"
-  exit 1
-fi
-
 PACKAGE_MANAGER=$(package_manager::determine_package_manager "${BUILD_DIR}")
 meta_set "package_manager" "${PACKAGE_MANAGER}"
 
