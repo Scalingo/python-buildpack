@@ -10,19 +10,19 @@ PYTHON_VERSION="${PYTHON_VERSION%%+([[:space:]])}"
 function eol_python_version_error() {
   local major_version="${1}"
   local eol_date="${2}"
-  puts-warn
-  puts-warn "Python ${major_version} reached upstream end-of-life on ${eol_date}, and is"
-  puts-warn "therefore no longer receiving security updates:"
-  puts-warn "https://devguide.python.org/versions/#supported-versions"
-  puts-warn
-  puts-warn "As such, it is no longer supported by this buildpack."
-  puts-warn
-  puts-warn "Please upgrade to a newer Python version. See:"
-  puts-warn "https://doc.scalingo.com/languages/python/start"
-  puts-warn
-  puts-warn "For a list of the supported Python versions, see:"
-  puts-warn "https://devcenter.heroku.com/articles/python-support#supported-runtimes"
-  puts-warn
+  display_error <<-EOF
+    Python ${major_version} reached upstream end-of-life on ${eol_date}, and is
+    therefore no longer receiving security updates:
+    https://devguide.python.org/versions/#supported-versions
+
+    As such, it is no longer supported by this buildpack.
+
+    Please upgrade to a newer Python version. See:
+    https://doc.scalingo.com/languages/python/start
+
+    For a list of the supported Python versions, see:
+    https://devcenter.heroku.com/articles/python-support#supported-runtimes
+  EOF
   meta_set "failure_reason" "python-version-eol"
   exit 1
 }
@@ -30,13 +30,13 @@ function eol_python_version_error() {
 # We check for EOL prior to checking if the archive exists on S3, to ensure the more specific EOL error
 # message is still shown for newer stacks where the EOL Python versions might not have been built.
 case "${PYTHON_VERSION}" in
-  python-3.7.+([0-9]))
-    eol_python_version_error "3.7" "June 27th, 2023"
-    ;;
-  python-3.6.+([0-9]))
-    eol_python_version_error "3.6" "December 23rd, 2021"
-    ;;
-  *) ;;
+	python-3.7.+([0-9]))
+		eol_python_version_error "3.7" "June 27th, 2023"
+		;;
+	python-3.6.+([0-9]))
+		eol_python_version_error "3.6" "December 23rd, 2021"
+		;;
+	*) ;;
 esac
 
 # The Python runtime archive filename is of form: 'python-X.Y.Z-ubuntu-22.04-amd64.tar.zst'
@@ -193,9 +193,9 @@ if [[ -f "${BUILD_DIR}/requirements.txt" ]]; then
 fi
 
 if [[ -n "${SKIP_INSTALL}" ]]; then
-  puts-step "Using cached install of ${PYTHON_VERSION}"
+	puts-step "Using cached install of ${PYTHON_VERSION}"
 else
-  puts-step "Installing ${PYTHON_VERSION}"
+	puts-step "Installing ${PYTHON_VERSION}"
 
   # Prepare destination directory.
   mkdir -p .scalingo/python
@@ -212,36 +212,5 @@ else
   echo "$PYTHON_VERSION" > .scalingo/python-version
   echo "$STACK" > .scalingo/python-stack
 
-  hash -r
+	hash -r
 fi
-
-PIP_VERSION=$(get_requirement_version 'pip')
-SETUPTOOLS_VERSION=$(get_requirement_version 'setuptools')
-WHEEL_VERSION=$(get_requirement_version 'wheel')
-
-puts-step "Installing pip ${PIP_VERSION}, setuptools ${SETUPTOOLS_VERSION} and wheel ${WHEEL_VERSION}"
-
-meta_set "pip_version" "${PIP_VERSION}"
-meta_set "setuptools_version" "${SETUPTOOLS_VERSION}"
-meta_set "wheel_version" "${WHEEL_VERSION}"
-
-# Python bundles Pip within its standard library, which we can use to install our chosen
-# pip version from PyPI, saving us from having to download the usual pip bootstrap script.
-# We have to use a glob since the bundled wheel filename contains the pip version, which
-# differs between Python versions. We also have to handle the case where there are multiple
-# matching pip wheels, since in some versions of Python (eg 3.9.0) multiple versions of pip
-# were accidentally bundled upstream. Note: This implementation relies upon `nullglob` being
-# set, which is the case thanks to the `bin/utils` that was run earlier.
-BUNDLED_PIP_WHEEL_LIST=(.scalingo/python/lib/python*/ensurepip/_bundled/pip-*.whl)
-BUNDLED_PIP_WHEEL="${BUNDLED_PIP_WHEEL_LIST[0]}"
-
-if [[ -z "${BUNDLED_PIP_WHEEL}" ]]; then
-  puts-warn "Failed to locate the bundled pip wheel"
-  meta_set "failure_reason" "bundled-pip-not-found"
-  exit 1
-fi
-
-/app/.scalingo/python/bin/python "${BUNDLED_PIP_WHEEL}/pip" install --quiet --disable-pip-version-check --no-cache-dir \
-  "${BUNDLED_PIP_WHEEL}" "setuptools==${SETUPTOOLS_VERSION}" "wheel==${WHEEL_VERSION}"
-
-hash -r

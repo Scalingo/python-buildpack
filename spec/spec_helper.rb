@@ -7,6 +7,8 @@ require 'rspec/core'
 require 'rspec/retry'
 require 'hatchet'
 
+FIXTURE_DIR = Pathname.new(__FILE__).parent.join('fixtures')
+
 LATEST_PYTHON_3_8 = '3.8.20'
 LATEST_PYTHON_3_9 = '3.9.20'
 LATEST_PYTHON_3_10 = '3.10.15'
@@ -49,9 +51,12 @@ RSpec.configure do |config|
 end
 
 def clean_output(output)
-  # Remove trailing whitespace characters added by Git:
-  # https://github.com/heroku/hatchet/issues/162
-  output.gsub(/ {8}(?=\R)/, '')
+  output
+    # Remove trailing whitespace characters added by Git:
+    # https://github.com/heroku/hatchet/issues/162
+    .gsub(/ {8}(?=\R)/, '')
+    # Remove ANSI colour codes used in buildpack output (e.g. error messages).
+    .gsub(/\e\[[0-9;]+m/, '')
 end
 
 def update_buildpacks(app, buildpacks)

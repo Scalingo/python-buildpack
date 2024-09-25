@@ -25,15 +25,15 @@ EXPORT_PATH="${BUILDPACK_DIR}/export"
 
 # Check that nltk was installed by pip, otherwise obviously not needed
 if is_module_available 'nltk'; then
-    puts-step "Downloading NLTK corpora..."
+	puts-step "Downloading NLTK corpora..."
 
-    nltk_packages_definition="$BUILD_DIR/nltk.txt"
+	nltk_packages_definition="$BUILD_DIR/nltk.txt"
 
-    if [[ -f "$nltk_packages_definition" ]]; then
-        meta_set "nltk_downloader" "enabled"
+	if [[ -f "$nltk_packages_definition" ]]; then
+		meta_set "nltk_downloader" "enabled"
 
-        readarray -t nltk_packages < "$nltk_packages_definition"
-        puts-step "Downloading NLTK packages: ${nltk_packages[*]}"
+		readarray -t nltk_packages <"$nltk_packages_definition"
+		puts-step "Downloading NLTK packages: ${nltk_packages[*]}"
 
         python -m nltk.downloader -d "$BUILD_DIR/.scalingo/python/nltk_data" "${nltk_packages[@]}" | indent
         set_env NLTK_DATA "/app/.scalingo/python/nltk_data"
