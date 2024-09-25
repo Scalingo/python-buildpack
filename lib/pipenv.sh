@@ -12,7 +12,7 @@ function pipenv::install_pipenv() {
 
 	# TODO: Install Pipenv into a venv so it isn't leaked into the app environment.
 	# TODO: Explore viability of making Pipenv only be available during the build, to reduce slug size.
-	/app/.heroku/python/bin/pip install --quiet --disable-pip-version-check --no-cache-dir "pipenv==${PIPENV_VERSION}"
+	/app/.scalingo/python/bin/pip install --quiet --disable-pip-version-check --no-cache-dir "pipenv==${PIPENV_VERSION}"
 }
 
 # Previous versions of the buildpack used to cache the checksum of the lockfile to allow
@@ -34,15 +34,15 @@ function pipenv::install_dependencies() {
 	# TODO: This is currently inconsistent with the non-test path, since it assumes (but doesn't check for) a lockfile.
 	if [[ -n "${INSTALL_TEST}" ]]; then
 		puts-step "Installing test dependencies with Pipenv"
-		/app/.heroku/python/bin/pipenv install --dev --system --deploy --extra-pip-args='--src=/app/.heroku/src' 2>&1 | cleanup | indent
+		/app/.scalingo/python/bin/pipenv install --dev --system --deploy --extra-pip-args='--src=/app/.scalingo/src' 2>&1 | cleanup | indent
 
 	# Install the dependencies.
 	elif [[ ! -f Pipfile.lock ]]; then
 		puts-step "Installing dependencies with Pipenv"
-		/app/.heroku/python/bin/pipenv install --system --skip-lock --extra-pip-args='--src=/app/.heroku/src' 2>&1 | indent
+		/app/.scalingo/python/bin/pipenv install --system --skip-lock --extra-pip-args='--src=/app/.scalingo/src' 2>&1 | indent
 
 	else
 		puts-step "Installing dependencies with Pipenv"
-		/app/.heroku/python/bin/pipenv install --system --deploy --extra-pip-args='--src=/app/.heroku/src' 2>&1 | indent
+		/app/.scalingo/python/bin/pipenv install --system --deploy --extra-pip-args='--src=/app/.scalingo/src' 2>&1 | indent
 	fi
 }

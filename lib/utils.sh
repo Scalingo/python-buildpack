@@ -10,7 +10,7 @@ function utils::bundled_pip_module_path() {
 	# matching pip wheels, since in some versions of Python (eg 3.9.0) multiple versions of pip
 	# were accidentally bundled upstream. Note: This implementation relies upon `nullglob` being
 	# set, which is the case thanks to the `bin/utils` that was run earlier.
-	local bundled_pip_wheel_list=("${build_dir}"/.heroku/python/lib/python*/ensurepip/_bundled/pip-*.whl)
+	local bundled_pip_wheel_list=("${build_dir}"/.scalingo/python/lib/python*/ensurepip/_bundled/pip-*.whl)
 	local bundled_pip_wheel="${bundled_pip_wheel_list[0]}"
 
 	if [[ -z "${bundled_pip_wheel}" ]]; then
