@@ -35,8 +35,8 @@ function package_manager::determine_package_manager() {
 			display_error <<-EOF
 				Error: Couldn't find any supported Python package manager files.
 
-				A Python app on Heroku must have either a 'requirements.txt' or
-				'Pipfile' package manager file in the root directory of its
+				A Python app on Scalingo must have either a 'requirements.txt'
+				or 'Pipfile' package manager file in the root directory of its
 				source code.
 
 				Currently the root directory of your app contains:
@@ -53,8 +53,7 @@ function package_manager::determine_package_manager() {
 				no dependencies, then create an empty 'requirements.txt' file.
 
 				For help with using Python on Heroku, see:
-				https://devcenter.heroku.com/articles/getting-started-with-python
-				https://devcenter.heroku.com/articles/python-support
+				https://doc.scalingo.com/languages/python/start
 			EOF
 			meta_set "failure_reason" "package-manager-not-found"
 			return 1
