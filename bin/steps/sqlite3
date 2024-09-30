@@ -12,22 +12,22 @@ sqlite3_install() {
   APT_CACHE_DIR="$SCALINGO_PYTHON_DIR/apt/cache"
   APT_STATE_DIR="$SCALINGO_PYTHON_DIR/apt/state"
 
-  mkdir -p "$APT_CACHE_DIR/archives/partial"
-  mkdir -p "$APT_STATE_DIR/lists/partial"
+	mkdir -p "$APT_CACHE_DIR/archives/partial"
+	mkdir -p "$APT_STATE_DIR/lists/partial"
 
-  APT_OPTIONS=(
-    "--option=debug::nolocking=true"
-    "--option=dir::cache=${APT_CACHE_DIR}"
-    "--option=dir::state=${APT_STATE_DIR}"
-    "--option=dir::etc::sourcelist=/etc/apt/sources.list"
-  )
+	APT_OPTIONS=(
+		"--option=debug::nolocking=true"
+		"--option=dir::cache=${APT_CACHE_DIR}"
+		"--option=dir::state=${APT_STATE_DIR}"
+		"--option=dir::etc::sourcelist=/etc/apt/sources.list"
+	)
 
-  apt-get "${APT_OPTIONS[@]}" update > /dev/null 2>&1
-  if [[ -z "$HEADERS_ONLY" ]]; then
-    apt-get "${APT_OPTIONS[@]}" -y -d --reinstall install libsqlite3-dev sqlite3 > /dev/null 2>&1
-  else
-    apt-get "${APT_OPTIONS[@]}" -y -d --reinstall install libsqlite3-dev
-  fi
+	apt-get "${APT_OPTIONS[@]}" update >/dev/null 2>&1
+	if [[ -z "$HEADERS_ONLY" ]]; then
+		apt-get "${APT_OPTIONS[@]}" -y -d --reinstall install libsqlite3-dev sqlite3 >/dev/null 2>&1
+	else
+		apt-get "${APT_OPTIONS[@]}" -y -d --reinstall install libsqlite3-dev
+	fi
 
   find "$APT_CACHE_DIR/archives/" -name "*.deb" -exec dpkg -x {} "$SCALINGO_PYTHON_DIR/sqlite3/" \;
 
@@ -40,8 +40,8 @@ sqlite3_install() {
   rm -f "$SCALINGO_PYTHON_DIR/lib/pkgconfig/sqlite3.pc"
   rm -f "$SCALINGO_PYTHON_DIR/bin/sqlite3"
 
-  # eg: `x86_64` or `aarch64`
-  GNU_ARCH=$(arch)
+	# eg: `x86_64` or `aarch64`
+	GNU_ARCH=$(arch)
 
   # copy over sqlite3 headers & bins and setup linking against the stack image library
   mv "$SCALINGO_PYTHON_DIR/sqlite3/usr/include/"* "$SCALINGO_PYTHON_DIR/include/"

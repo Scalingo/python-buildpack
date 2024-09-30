@@ -5,9 +5,12 @@ name = "Python"
 files = [
   ".github/",
   "builds/",
+  "etc/publish.sh",
   "spec/",
+  ".editorconfig",
   ".gitignore",
   ".rubocop.yml",
+  ".shellcheckrc",
   "Gemfile",
   "Gemfile.lock",
   "hatchet.json",

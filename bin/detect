@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: bin/compile <build-dir>
+# Usage: bin/detect <build-dir>
 # See: https://devcenter.heroku.com/articles/buildpack-api
 
 # This script serves as the
@@ -12,6 +12,11 @@ set -euo pipefail
 
 BUILD_DIR="${1}"
 
+# The absolute path to the root of the buildpack.
+BUILDPACK_DIR=$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)
+
+source "${BUILDPACK_DIR}/lib/output.sh"
+
 # Filenames that if found in a project mean it should be treated as a Python project,
 # and so pass this buildpack's detection phase.
 #
@@ -19,37 +24,33 @@ BUILD_DIR="${1}"
 # so that Python projects that are missing some of the required files still pass detection,
 # allowing us to show a helpful error message during the build phase.
 KNOWN_PYTHON_PROJECT_FILES=(
-  .python-version
-  app.py
-  main.py
-  manage.py
-  pdm.lock
-  Pipfile
-  Pipfile.lock
-  poetry.lock
-  pyproject.toml
-  requirements.txt
-  runtime.txt
-  setup.cfg
-  setup.py
-  uv.lock
+	.python-version
+	app.py
+	main.py
+	manage.py
+	pdm.lock
+	Pipfile
+	Pipfile.lock
+	poetry.lock
+	pyproject.toml
+	requirements.txt
+	runtime.txt
+	setup.cfg
+	setup.py
+	uv.lock
 )
 
 for filename in "${KNOWN_PYTHON_PROJECT_FILES[@]}"; do
-  if [[ -f "${BUILD_DIR}/${filename}" ]]; then
-    echo "Python"
-    exit 0
-  fi
+	if [[ -f "${BUILD_DIR}/${filename}" ]]; then
+		echo "Python"
+		exit 0
+	fi
 done
-
-# Cytokine incorrectly indents the first line, so we have to leave it empty.
-echo 1>&2
 
 # Note: This error message intentionally doesn't list all of the filetypes above,
 # since during compile the build will still require a package manager file, so it
-# makes sense to describe the stricter requirements up front.
-# TODO: Overhaul logging helpers so they can handle prefixing multi-line strings, and switch to them.
-sed 's/^/ !     /' 1>&2 << EOF
+# makes sense to describe the stricter requirements upfront.
+display_error <<EOF
 Error: Your app is configured to use the Python buildpack,
 but we couldn't find any supported Python project files.
 
