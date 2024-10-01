@@ -21,9 +21,12 @@ if [[ -n "$BUILDPACK_DEBUG" ]]; then
   set -x
 fi
 
-set -eo pipefail
+set -euo pipefail
 
-[[ -n "$BUILDPACK_XTRACE" ]] && set -o xtrace
+# Note: This can't be enabled via app config vars, since at this point they haven't been loaded from ENV_DIR.
+if [[ "${BUILDPACK_XTRACE:-0}" == "1" ]]; then
+	set -o xtrace
+fi
 
 BUILD_DIR="${1}"
 CACHE_DIR="${2}"
@@ -99,20 +102,16 @@ export BUILD_DIR CACHE_DIR BIN_DIR PROFILE_PATH EXPORT_PATH
 # Notes on each variable included.
 
 # PATH is relatively obvious, we need to be able to execute 'python'.
-export PATH=/app/.scalingo/python/bin:/app/.scalingo/vendor/bin:$PATH
+export PATH="/app/.scalingo/python/bin:/app/.scalingo/vendor/bin:${PATH}"
 # Tell Python to not buffer it's stdin/stdout.
 export PYTHONUNBUFFERED=1
 # Set the locale to a well-known and expected standard.
-export LANG=en_US.UTF-8
-# `~/.scalingo/vendor` is a place where the buildpack may stick pre-build binaries for known
-# C dependencies. This section configures Python (GCC, more specifically)
-# and pip to automatically include these paths when building binaries.
-# TODO: Stop adding .scalingo/vendor here now that the buildpack no longer vendors anything.
-export C_INCLUDE_PATH=/app/.scalingo/vendor/include:/app/.scalingo/python/include:$C_INCLUDE_PATH
-export CPLUS_INCLUDE_PATH=/app/.scalingo/vendor/include:/app/.scalingo/python/include:$CPLUS_INCLUDE_PATH
-export LIBRARY_PATH=/app/.scalingo/vendor/lib:/app/.scalingo/python/lib:$LIBRARY_PATH
-export LD_LIBRARY_PATH=/app/.scalingo/vendor/lib:/app/.scalingo/python/lib:$LD_LIBRARY_PATH
-export PKG_CONFIG_PATH=/app/.scalingo/vendor/lib/pkg-config:/app/.scalingo/python/lib/pkg-config:$PKG_CONFIG_PATH
+export LANG="en_US.UTF-8"
+export C_INCLUDE_PATH="/app/.scalingo/python/include${C_INCLUDE_PATH:+:${C_INCLUDE_PATH}}"
+export CPLUS_INCLUDE_PATH="/app/.scalingo/python/include${CPLUS_INCLUDE_PATH:+:${CPLUS_INCLUDE_PATH}}"
+export LIBRARY_PATH="/app/.scalingo/python/lib${LIBRARY_PATH:+:${LIBRARY_PATH}}"
+export LD_LIBRARY_PATH="/app/.scalingo/python/lib${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+export PKG_CONFIG_PATH="/app/.scalingo/python/lib/pkg-config${PKG_CONFIG_PATH:+:${PKG_CONFIG_PATH}}"
 
 # Global pip options (https://pip.pypa.io/en/stable/user_guide/#environment-variables).
 # Disable pip's warnings about EOL Python since we show our own.
@@ -209,7 +208,6 @@ if [[ "$(realpath "${BUILD_DIR}")" != "$(realpath /app)" ]]; then
     # python expects to reside in /app, so set up symlinks
     # we will not remove these later so subsequent buildpacks can still invoke it
     ln -nsf "$BUILD_DIR/.scalingo/python" /app/.scalingo/python
-    ln -nsf "$BUILD_DIR/.scalingo/vendor" /app/.scalingo/vendor
     # Note: .scalingo/src is copied in later.
 fi
 
@@ -231,7 +229,7 @@ case "${PACKAGE_MANAGER}" in
 		pipenv::install_pipenv
 		;;
 	*)
-		abort_internal_error "Unhandled package manager"
+		utils::abort_internal_error "Unhandled package manager"
 		;;
 esac
 meta_time "package_manager_install_duration" "${package_manager_install_start_time}"
@@ -254,7 +252,7 @@ case "${PACKAGE_MANAGER}" in
 		pipenv::install_dependencies
 		;;
 	*)
-		abort_internal_error "Unhandled package manager"
+		utils::abort_internal_error "Unhandled package manager"
 		;;
 esac
 meta_time "dependencies_install_duration" "${dependencies_install_start_time}"
@@ -280,20 +278,20 @@ meta_time "django_collectstatic_duration" "${collectstatic_start_time}"
 # Programmatically create .profile.d script for application runtime environment variables.
 
 # Set the PATH to include Python / pip / pipenv / etc.
-set_env PATH "\$HOME/.scalingo/python/bin:\$PATH"
+set_env PATH "\${HOME}/.scalingo/python/bin:\${PATH}"
 # Tell Python to run in unbuffered mode.
 set_env PYTHONUNBUFFERED true
 # Tell Python where it lives.
-set_env PYTHONHOME "\$HOME/.scalingo/python"
+set_env PYTHONHOME "\${HOME}/.scalingo/python"
 # Set variables for C libraries.
-set_env LIBRARY_PATH "\$HOME/.scalingo/vendor/lib:\$HOME/.scalingo/python/lib:\$LIBRARY_PATH"
-set_env LD_LIBRARY_PATH "\$HOME/.scalingo/vendor/lib:\$HOME/.scalingo/python/lib:\$LD_LIBRARY_PATH"
+set_env LIBRARY_PATH "\${HOME}/.scalingo/python/lib:\${LIBRARY_PATH:+:\${LIBRARY_PATH}}"
+set_env LD_LIBRARY_PATH "\${HOME}/.scalingo/python/lib:\${LD_LIBRARY_PATH:+:\${LD_LIBRARY_PATH}}"
 # Locale.
 set_default_env LANG en_US.UTF-8
 # The Python hash seed is set to random.
 set_default_env PYTHONHASHSEED random
 # Tell Python to look for Python modules in the /app dir. Don't change this.
-set_default_env PYTHONPATH "\$HOME"
+set_default_env PYTHONPATH "\${HOME}"
 
 # Python expects to be in /app, if at runtime, it is not, set
 # up symlinks… this can occur when the subdir buildpack is used.
@@ -301,7 +299,6 @@ cat <<EOT >>"$PROFILE_PATH"
 if [[ \$HOME != "/app" ]]; then
     mkdir -p /app/.scalingo
     ln -nsf "\$HOME/.scalingo/python" /app/.scalingo/python
-    ln -nsf "\$HOME/.scalingo/vendor" /app/.scalingo/vendor
 fi
 EOT
 
@@ -326,7 +323,6 @@ source "${BUILDPACK_DIR}/bin/steps/hooks/post_compile"
 rm -rf "$CACHE_DIR/.scalingo/python"
 rm -rf "$CACHE_DIR/.scalingo/python-version"
 rm -rf "$CACHE_DIR/.scalingo/python-stack"
-rm -rf "$CACHE_DIR/.scalingo/vendor"
 rm -rf "$CACHE_DIR/.scalingo/src"
 
 mkdir -p "$CACHE_DIR/.scalingo"
