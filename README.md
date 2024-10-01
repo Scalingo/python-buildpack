@@ -42,7 +42,7 @@ A `requirements.txt` must be present at the root of your application's repositor
 See it in Action with Pipenv
 ----------------------------
 
-Current default Python Runtime: Python 3.12.6
+Current default Python Runtime: Python 3.12.7
 
 ```bash
 $ ls
@@ -78,7 +78,7 @@ Specify a Python Runtime
 
 Supported runtime options include:
 
-- `python-3.12.6` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
+- `python-3.12.7` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.11.10` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.10.15` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.9.20` on all [supported stacks](https://doc.scalingo.com/languages/python/start)

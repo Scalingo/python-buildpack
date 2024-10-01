@@ -4,8 +4,8 @@
 # and the APT buildpack should be used if an app needs the sqlite CLI/headers.
 
 sqlite3_install() {
-  SCALINGO_PYTHON_DIR="$1"
-  HEADERS_ONLY="$3"
+	SCALINGO_PYTHON_DIR="$1"
+	HEADERS_ONLY="${3:-}"
 
   mkdir -p "$SCALINGO_PYTHON_DIR"
 

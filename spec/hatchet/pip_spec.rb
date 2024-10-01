@@ -11,7 +11,7 @@ RSpec.shared_examples 'installs successfully using pip' do
   end
 end
 
-RSpec.describe 'Pip support' do
+RSpec.describe 'pip support' do
   # TODO: Run this on Heroku-22 too, once it has also migrated to the new build infrastructure.
   # (Currently the test fails on the old infrastructure due to subtle differences in system PATH elements.)
   context 'when requirements.txt is unchanged since the last build', stacks: %w[heroku-20 heroku-24] do
@@ -35,8 +35,8 @@ RSpec.describe 'Pip support' do
           remote:        Successfully installed typing-extensions-4.12.2
           remote: -----> Inline app detected
           remote: LANG=en_US.UTF-8
-          remote: LD_LIBRARY_PATH=/app/.heroku/vendor/lib:/app/.heroku/python/lib:
-          remote: LIBRARY_PATH=/app/.heroku/vendor/lib:/app/.heroku/python/lib:
+          remote: LD_LIBRARY_PATH=/app/.heroku/python/lib
+          remote: LIBRARY_PATH=/app/.heroku/python/lib
           remote: PATH=/app/.heroku/python/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
           remote: PYTHONHASHSEED=random
           remote: PYTHONHOME=/app/.heroku/python

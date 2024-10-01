@@ -3,6 +3,14 @@
 ## [Unreleased]
 
 
+## [v258] - 2024-10-01
+
+- Added support for Python 3.12.7. ([#1650](https://github.com/heroku/heroku-buildpack-python/pull/1650))
+- Changed the default Python version for new apps from 3.12.6 to 3.12.7. ([#1650](https://github.com/heroku/heroku-buildpack-python/pull/1650))
+- Fixed Django collectstatic debug output being shown if `DEBUG_COLLECTSTATIC` was set to `0` or the empty string. ([#1646](https://github.com/heroku/heroku-buildpack-python/pull/1646))
+- Stopped adding a trailing `:` to `C_INCLUDE_PATH`, `CPLUS_INCLUDE_PATH`, `LIBRARY_PATH`, `LD_LIBRARY_PATH` and `PKG_CONFIG_PATH`. ([#1645](https://github.com/heroku/heroku-buildpack-python/pull/1645))
+- Removed remnants of the unused `.heroku/vendor/` directory. ([#1644](https://github.com/heroku/heroku-buildpack-python/pull/1644))
+
 ## [v257] - 2024-09-24
 
 - Moved the SQLite3 install step prior to installing dependencies when using Pipenv. This now matches the behaviour when using pip and allows dependencies to actually use the headers. ([#1640](https://github.com/heroku/heroku-buildpack-python/pull/1640))
@@ -538,7 +546,7 @@
 
 ## v164 - 2020-02-20
 
-- Update requirements.txt builds to use Pip 20.0.2
+- Update requirements.txt builds to use pip 20.0.2
 - Download get-pip.py to tmpdir instead of root dir
 
 ## v163 - 2019-12-23
@@ -667,7 +675,7 @@ Default to 3.6.5, bugfixes.
 
 ## v133
 
-Fixes for Pip 10 release.
+Fixes for pip 10 release.
 
 ## v132
 
@@ -1013,34 +1021,35 @@ Improved compatibility with multi and node.js buildpacks.
 
 ## v63 - 2015-10-08
 
-Updated Pip and Setuptools.
+Updated pip and Setuptools.
 
 - Setuptools updated to v18.3.2
-- Pip updated to v7.1.2
+- pip updated to v7.1.2
 
 ## v62 - 2015-08-07
 
-Updated Pip and Setuptools.
+Updated pip and Setuptools.
 
 - Setuptools updated to v18.1
-- Pip updated to v7.1.0
+- pip updated to v7.1.0
 
 ## v61 - 2015-06-30
 
-Updated Pip and Setuptools.
+Updated pip and Setuptools.
 
 - Setuptools updated to v18.0.1
-- Pip updated to v7.0.3
+- pip updated to v7.0.3
 
 ## v60 - 2015-05-27
 
-Default Python is now latest 2.7.10. Updated Pip and Distribute.
+Default Python is now latest 2.7.10. Updated pip and Distribute.
 
 - Default Python version is v2.7.10
 - Setuptools updated to v16.0
-- Pip updated to v7.0.1
+- pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v257...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v258...main
+[v258]: https://github.com/heroku/heroku-buildpack-python/compare/v257...v258
 [v257]: https://github.com/heroku/heroku-buildpack-python/compare/v256...v257
 [v256]: https://github.com/heroku/heroku-buildpack-python/compare/v255...v256
 [v255]: https://github.com/heroku/heroku-buildpack-python/compare/v254...v255
