@@ -9,6 +9,7 @@
 # A [buildpack](https://doc.scalingo.com/buildpacks) is an adapter between a
 # Python application and Scalingo's runtime.
 set -euo pipefail
+shopt -s inherit_errexit
 
 BUILD_DIR="${1}"
 
@@ -60,7 +61,7 @@ source code.
 
 Currently the root directory of your app contains:
 
-$(ls -1 --indicator-style=slash "${BUILD_DIR}")
+$(ls -1 --indicator-style=slash "${BUILD_DIR}" || true)
 
 If your app already has a package manager file, check that it:
 

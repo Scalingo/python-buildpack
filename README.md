@@ -78,6 +78,7 @@ Specify a Python Runtime
 
 Supported runtime options include:
 
+- `python-3.13.0` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.12.7` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.11.10` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
 - `python-3.10.15` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
