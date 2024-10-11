@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# shellcheck disable=SC2250 # TODO: Use braces around variable references even when not strictly required.
 
 # This script serves as the NLTK build step of the
 # [**Python Buildpack**](https://github.com/Scalingo/python-buildpack)
@@ -16,14 +17,14 @@ source "${BUILDPACK_DIR}/bin/utils"
 
 # Required for `meta_set`.
 source "${BUILDPACK_DIR}/lib/metadata.sh"
-# shellcheck disable=SC2153
-meta_init "${CACHE_DIR}" "python"
+meta_init "${CACHE_DIR:?}" "python"
 
 # These are required by `set_env`.
-PROFILE_PATH="${BUILD_DIR}/.profile.d/python.sh"
+PROFILE_PATH="${BUILD_DIR:?}/.profile.d/python.sh"
 EXPORT_PATH="${BUILDPACK_DIR}/export"
 
 # Check that nltk was installed by pip, otherwise obviously not needed
+# shellcheck disable=SC2310 # TODO: This function is invoked in an 'if' condition so set -e will be disabled.
 if is_module_available 'nltk'; then
 	puts-step "Downloading NLTK corpora..."
 

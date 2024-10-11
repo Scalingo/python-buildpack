@@ -3,6 +3,21 @@
 ## [Unreleased]
 
 
+## [v260] - 2024-10-10
+
+- Added support for Python 3.13. ([#1661](https://github.com/heroku/heroku-buildpack-python/pull/1661))
+- Removed the `idle3` and `pydoc3` scripts since they do not work with relocated Python and so have been broken for some time. Invoke them via their modules instead (e.g. `python -m pydoc`). ([#1661](https://github.com/heroku/heroku-buildpack-python/pull/1661))
+
+## [v259] - 2024-10-09
+
+- Improved build log output about the detected Python version. ([#1658](https://github.com/heroku/heroku-buildpack-python/pull/1658))
+- Improved error messages shown when the requested Python version is not a valid version string or is for an unknown/non-existent major Python version. ([#1658](https://github.com/heroku/heroku-buildpack-python/pull/1658))
+- Improved error messages shown when `Pipfile.lock` is not valid JSON. ([#1658](https://github.com/heroku/heroku-buildpack-python/pull/1658))
+- Fixed invalid Python versions being silently ignored when they were specified via the `python_version` field in `Pipfile.lock`. ([#1658](https://github.com/heroku/heroku-buildpack-python/pull/1658))
+- Added support for Python 3.9 on Heroku-24. ([#1656](https://github.com/heroku/heroku-buildpack-python/pull/1656))
+- Added buildpack metrics for use of outdated Python patch versions and occurrences of internal errors. ([#1657](https://github.com/heroku/heroku-buildpack-python/pull/1657))
+- Improved the robustness of buildpack error handling by enabling `inherit_errexit`. ([#1655](https://github.com/heroku/heroku-buildpack-python/pull/1655))
+
 ## [v258] - 2024-10-01
 
 - Added support for Python 3.12.7. ([#1650](https://github.com/heroku/heroku-buildpack-python/pull/1650))
@@ -1048,7 +1063,9 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v258...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v260...main
+[v260]: https://github.com/heroku/heroku-buildpack-python/compare/v259...v260
+[v259]: https://github.com/heroku/heroku-buildpack-python/compare/v258...v259
 [v258]: https://github.com/heroku/heroku-buildpack-python/compare/v257...v258
 [v257]: https://github.com/heroku/heroku-buildpack-python/compare/v256...v257
 [v256]: https://github.com/heroku/heroku-buildpack-python/compare/v255...v256
