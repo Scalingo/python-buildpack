@@ -1,86 +1,63 @@
 # Buildpack: Python
 
-This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks) for Python apps, powered by [Pipenv](https://docs.pipenv.org/), [pip](https://pip.pypa.io/) and other excellent software.
+This is the official [Scalingo buildpack](https://doc.scalingo.com/buildpacks)
+for Python apps, powered by [Pipenv](https://docs.pipenv.org/), [pip](https://pip.pypa.io/)
+and other excellent software.
 
-Recommended web frameworks include **Django** and **Flask**, among others. The recommended webserver is **Gunicorn**. There are no restrictions around what software can be used (as long as it's pip-installable). Web processes must bind to `$PORT`, and only the HTTP protocol is permitted for incoming connections.
+Recommended web frameworks include **Django** and **Flask**, among others. The
+recommended webserver is **Gunicorn**. There are no restrictions around what
+software can be used (as long as it's pip-installable). Web processes must bind
+to `$PORT`, and only the HTTP protocol is permitted for incoming connections.
 
-Python packages with C dependencies that are not [available on the base image](https://doc.scalingo.com/platform/internals/base-docker-image#top-of-page) are generally not supported, unless `manylinux` wheels are provided by the package maintainers (common).
+Python packages with C dependencies that are not [available on the base image](https://doc.scalingo.com/platform/internals/stacks/stacks)
+are generally not supported, unless `manylinux` wheels are provided by the
+package maintainers (common).
 
-See it in Action
-----------------
+## Application Requirements
 
-```bash
-$ ls
-my-application		requirements.txt	runtime.txt
+A `requirements.txt` or `Pipfile` file must be present in the root (top-level)
+directory of your app's source code.
 
-$ git push scalingo master
-Counting objects: 4, done.
-Delta compression using up to 8 threads.
-Compressing objects: 100% (2/2), done.
-Writing objects: 100% (4/4), 276 bytes | 276.00 KiB/s, done.
-Total 4 (delta 0), reused 0 (delta 0)
-remote: Compressing source files... done.
-remote: Building source:
-remote:
-remote: -----> Python app detected
-remote: -----> Installing python
-remote: -----> Installing pip
-remote: -----> Installing SQLite3
-remote: -----> Installing requirements with pip
-remote:        Collecting flask (from -r /tmp/build_c2c067ef79ff14c9bf1aed6796f9ed1f/requirements.txt (line 1))
-remote:          Downloading ...
-remote:        Installing collected packages: Werkzeug, click, MarkupSafe, Jinja2, itsdangerous, flask
-remote:        Successfully installed Jinja2-2.10 MarkupSafe-1.1.0 Werkzeug-0.14.1 click-7.0 flask-1.0.2 itsdangerous-1.1.0
-remote:
-remote: -----> Discovering process types
-remote:        Procfile declares types -> (none)
-remote:
-```
+## Configuration
 
-A `requirements.txt` must be present at the root of your application's repository to deploy.
+### Python Version
 
-See it in Action with Pipenv
-----------------------------
+We recommend that you specify a Python version for your app rather than relying
+on the buildpack's default Python version.
 
-Current default Python Runtime: Python 3.12.7
+For example, to request the latest patch release of Python 3.13, create a
+`.python-version` file in the root directory of your app containing: `3.13`
 
-```bash
-$ ls
-Pipfile		Pipfile.lock	Procfile	web.py
+The buildpack will look for a Python version in the following places (in
+descending order of precedence):
 
-$ scalingo create my-python-app
+1. `runtime.txt` file (deprecated)
+2. `.python-version` file (recommended)
+3. The `python_full_version` field in the `Pipfile.lock` file
+4. The `python_version` field in the `Pipfile.lock` file
 
-$ git push scalingo master
-…
------> Python app detected
------> Installing python-3.11.2
------> Installing pip
------> Installing requirements with Pipenv 2023.2.18…
-        ...
-        Installing dependencies from Pipfile…
------> Discovering process types
-        Procfile declares types -> (none)
-```
+If none of those are found, the buildpack will use a default Python version for
+the first build of an app, and then subsequent builds of that app will be
+pinned to that version unless the build cache is cleared or you request a
+different version.
 
-A `Pipfile` and a `Pipfile.lock` must be present at the root of your application's repository.
+The current default Python version is: `3.12`
 
-Specify a Buildpack Version
----------------------------
+The supported Python versions are:
 
-You can specify the latest production release of this buildpack for upcoming builds of an existing application:
+- Python `3.13`
+- Python `3.12`
+- Python `3.11`
+- Python `3.10`
 
-```bash
-scalingo env-set BUILDPACK_URL=https://github.com/Scalingo/python-buildpack
-```
+These Python versions are deprecated on Scalingo:
 
-Specify a Python Runtime
-------------------------
+- Python `3.9`
+- Python `3.8` (only available on the [scalingo-20](https://doc.scalingo.com/platform/internals/stacks/scalingo-20-stack) stack)
 
-Supported runtime options include:
+Python versions older than those listed above are no longer supported, since
+they have reached end-of-life [upstream](https://devguide.python.org/versions/#supported-versions).
 
-- `python-3.13.0` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.12.7` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.11.10` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.10.15` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.9.20` on all [supported stacks](https://doc.scalingo.com/languages/python/start)
-- `python-3.8.20` on scalingo-20 only
+## Documentation
+
+For more information about using Python on Scalingo, see [our documentation](https://doc.scalingo.com/languages/python/start).
