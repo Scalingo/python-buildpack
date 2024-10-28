@@ -7,10 +7,7 @@ RSpec.describe 'Pipenv support' do
     let(:buildpacks) { [:default, 'heroku-community/inline'] }
     let(:app) { Hatchet::Runner.new('spec/fixtures/pipenv_basic', buildpacks:) }
 
-    # TODO: Run this on Heroku-22 too, once it has also migrated to the new build infrastructure.
-    # (Currently the test fails on the old infrastructure due to subtle differences in system PATH elements.)
-    it 'builds with the specified python_version and re-uses packages from the cache',
-       stacks: %w[heroku-20 heroku-24] do
+    it 'builds with the specified python_version and re-uses packages from the cache' do
       app.deploy do |app|
         # TODO: We should not be leaking the Pipenv installation into the app environment.
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
@@ -83,10 +80,12 @@ RSpec.describe 'Pipenv support' do
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
           remote: -----> Python app detected
           remote: -----> Using Python 3.9.0 specified in Pipfile.lock
+          remote: 
+          remote:  !     Warning: A Python security update is available!
           remote:  !     
-          remote:  !     A Python security update is available! Upgrade as soon as possible to: Python #{LATEST_PYTHON_3_9}
+          remote:  !     Upgrade as soon as possible to: Python #{LATEST_PYTHON_3_9}
           remote:  !     See: https://devcenter.heroku.com/articles/python-runtimes
-          remote:  !     
+          remote: 
           remote: -----> Installing Python 3.9.0
           remote: -----> Installing pip #{PIP_VERSION}, setuptools #{SETUPTOOLS_VERSION} and wheel #{WHEEL_VERSION}
           remote: -----> Installing Pipenv #{PIPENV_VERSION}
@@ -143,7 +142,11 @@ RSpec.describe 'Pipenv support' do
       app.deploy do |app|
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX, Regexp::MULTILINE))
           remote: -----> Python app detected
-          remote:  !     No 'Pipfile.lock' found! We recommend you commit this into your repository.
+          remote: 
+          remote:  !     Warning: No 'Pipfile.lock' found!
+          remote:  !     
+          remote:  !     We recommend you commit this into your repository.
+          remote: 
           remote: -----> No Python version was specified. Using the buildpack default: Python #{DEFAULT_PYTHON_MAJOR_VERSION}
           remote:        To use a different version, see: https://devcenter.heroku.com/articles/python-runtimes
           remote: -----> Installing Python #{DEFAULT_PYTHON_FULL_VERSION}
@@ -356,16 +359,16 @@ RSpec.describe 'Pipenv support' do
     it 'rewrites .pth, .egg-link and finder paths correctly for hooks, later buildpacks, runtime and cached builds' do
       app.deploy do |app|
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
-          remote: -----> Running post-compile hook
-          remote: easy-install.pth:/app/.heroku/src/gunicorn
-          remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
-          remote: __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
-          remote: gunicorn.egg-link:/app/.heroku/src/gunicorn
-          remote: local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
-          remote: 
-          remote: Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
-          remote: Running entrypoint for the setup.py-based local package: Hello setup.py!
-          remote: Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
+          remote: -----> Running bin/post_compile hook
+          remote:        easy-install.pth:/app/.heroku/src/gunicorn
+          remote:        easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
+          remote:        __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
+          remote:        gunicorn.egg-link:/app/.heroku/src/gunicorn
+          remote:        local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
+          remote:        
+          remote:        Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
+          remote:        Running entrypoint for the setup.py-based local package: Hello setup.py!
+          remote:        Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
           remote: -----> Inline app detected
           remote: easy-install.pth:/app/.heroku/src/gunicorn
           remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
@@ -395,16 +398,16 @@ RSpec.describe 'Pipenv support' do
         app.commit!
         app.push!
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
-          remote: -----> Running post-compile hook
-          remote: easy-install.pth:/app/.heroku/src/gunicorn
-          remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
-          remote: __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
-          remote: gunicorn.egg-link:/app/.heroku/src/gunicorn
-          remote: local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
-          remote: 
-          remote: Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
-          remote: Running entrypoint for the setup.py-based local package: Hello setup.py!
-          remote: Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
+          remote: -----> Running bin/post_compile hook
+          remote:        easy-install.pth:/app/.heroku/src/gunicorn
+          remote:        easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
+          remote:        __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
+          remote:        gunicorn.egg-link:/app/.heroku/src/gunicorn
+          remote:        local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
+          remote:        
+          remote:        Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
+          remote:        Running entrypoint for the setup.py-based local package: Hello setup.py!
+          remote:        Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
           remote: -----> Inline app detected
           remote: easy-install.pth:/app/.heroku/src/gunicorn
           remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py

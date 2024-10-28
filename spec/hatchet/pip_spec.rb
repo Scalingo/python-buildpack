@@ -12,9 +12,7 @@ RSpec.shared_examples 'installs successfully using pip' do
 end
 
 RSpec.describe 'pip support' do
-  # TODO: Run this on Heroku-22 too, once it has also migrated to the new build infrastructure.
-  # (Currently the test fails on the old infrastructure due to subtle differences in system PATH elements.)
-  context 'when requirements.txt is unchanged since the last build', stacks: %w[heroku-20 heroku-24] do
+  context 'when requirements.txt is unchanged since the last build' do
     let(:buildpacks) { [:default, 'heroku-community/inline'] }
     let(:app) { Hatchet::Runner.new('spec/fixtures/requirements_basic', buildpacks:) }
 
@@ -140,16 +138,16 @@ RSpec.describe 'pip support' do
     it 'rewrites .pth, .egg-link and finder paths correctly for hooks, later buildpacks, runtime and cached builds' do
       app.deploy do |app|
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
-          remote: -----> Running post-compile hook
-          remote: easy-install.pth:/app/.heroku/src/gunicorn
-          remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
-          remote: __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
-          remote: gunicorn.egg-link:/app/.heroku/src/gunicorn
-          remote: local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
-          remote: 
-          remote: Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
-          remote: Running entrypoint for the setup.py-based local package: Hello setup.py!
-          remote: Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
+          remote: -----> Running bin/post_compile hook
+          remote:        easy-install.pth:/app/.heroku/src/gunicorn
+          remote:        easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
+          remote:        __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
+          remote:        gunicorn.egg-link:/app/.heroku/src/gunicorn
+          remote:        local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
+          remote:        
+          remote:        Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
+          remote:        Running entrypoint for the setup.py-based local package: Hello setup.py!
+          remote:        Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
           remote: -----> Inline app detected
           remote: easy-install.pth:/app/.heroku/src/gunicorn
           remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
@@ -179,16 +177,16 @@ RSpec.describe 'pip support' do
         app.commit!
         app.push!
         expect(clean_output(app.output)).to match(Regexp.new(<<~REGEX))
-          remote: -----> Running post-compile hook
-          remote: easy-install.pth:/app/.heroku/src/gunicorn
-          remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
-          remote: __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
-          remote: gunicorn.egg-link:/app/.heroku/src/gunicorn
-          remote: local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
-          remote: 
-          remote: Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
-          remote: Running entrypoint for the setup.py-based local package: Hello setup.py!
-          remote: Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
+          remote: -----> Running bin/post_compile hook
+          remote:        easy-install.pth:/app/.heroku/src/gunicorn
+          remote:        easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
+          remote:        __editable___local_package_pyproject_toml_0_0_1_finder.py:/tmp/build_.*/packages/local_package_pyproject_toml/local_package_pyproject_toml'}
+          remote:        gunicorn.egg-link:/app/.heroku/src/gunicorn
+          remote:        local-package-setup-py.egg-link:/tmp/build_.*/packages/local_package_setup_py
+          remote:        
+          remote:        Running entrypoint for the pyproject.toml-based local package: Hello pyproject.toml!
+          remote:        Running entrypoint for the setup.py-based local package: Hello setup.py!
+          remote:        Running entrypoint for the VCS package: gunicorn \\(version 20.1.0\\)
           remote: -----> Inline app detected
           remote: easy-install.pth:/app/.heroku/src/gunicorn
           remote: easy-install.pth:/tmp/build_.*/packages/local_package_setup_py
@@ -261,9 +259,13 @@ RSpec.describe 'pip support' do
     it 'outputs instructions for how to resolve the build failure' do
       app.deploy do |app|
         expect(clean_output(app.output)).to include(<<~OUTPUT)
-          remote:  !     Hello! Package installation failed since the GDAL library was not found.
+          remote:        note: This error originates from a subprocess, and is likely not a problem with pip.
+          remote: 
+          remote:  !     Error: Package installation failed since the GDAL library was not found.
+          remote:  !     
           remote:  !     For GDAL, GEOS and PROJ support, use the Geo buildpack alongside the Python buildpack:
           remote:  !     https://github.com/heroku/heroku-geo-buildpack
+          remote: 
           remote:  !     Push rejected, failed to compile Python app.
         OUTPUT
       end
