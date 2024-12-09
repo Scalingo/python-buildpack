@@ -5,11 +5,11 @@
 set -euo pipefail
 
 LATEST_PYTHON_3_8="3.8.20"
-LATEST_PYTHON_3_9="3.9.20"
-LATEST_PYTHON_3_10="3.10.15"
-LATEST_PYTHON_3_11="3.11.10"
-LATEST_PYTHON_3_12="3.12.7"
-LATEST_PYTHON_3_13="3.13.0"
+LATEST_PYTHON_3_9="3.9.21"
+LATEST_PYTHON_3_10="3.10.16"
+LATEST_PYTHON_3_11="3.11.11"
+LATEST_PYTHON_3_12="3.12.8"
+LATEST_PYTHON_3_13="3.13.1"
 
 DEFAULT_PYTHON_FULL_VERSION="${LATEST_PYTHON_3_12}"
 DEFAULT_PYTHON_MAJOR_VERSION="${DEFAULT_PYTHON_FULL_VERSION%.*}"
@@ -74,8 +74,7 @@ function python_version::read_requested_python_version() {
 		fi
 	fi
 
-	# Protect against invalid versions somehow having been written into the cache.
-	# TODO: Move this validation into the cache handling as part of the cache refactor?
+	# Protect against unsupported (eg PyPy) or invalid versions being found in the cache metadata.
 	if [[ "${cached_python_version}" =~ ^${PYTHON_VERSION_REGEX}$ ]]; then
 		version="${cached_python_version}"
 		origin="cached"
@@ -116,7 +115,7 @@ function python_version::parse_runtime_txt() {
 			python-${DEFAULT_PYTHON_MAJOR_VERSION}
 		EOF
 		meta_set "failure_reason" "runtime-txt::invalid-version"
-		return 1
+		exit 1
 	fi
 }
 
@@ -161,7 +160,7 @@ function python_version::parse_python_version_file() {
 					${DEFAULT_PYTHON_MAJOR_VERSION}
 				EOF
 				meta_set "failure_reason" "python-version-file::invalid-version"
-				return 1
+				exit 1
 			fi
 			;;
 		0)
@@ -177,7 +176,7 @@ function python_version::parse_python_version_file() {
 				begin with a '#', otherwise it will be treated as a comment.
 			EOF
 			meta_set "failure_reason" "python-version-file::no-version"
-			return 1
+			exit 1
 			;;
 		*)
 			output::error <<-EOF
@@ -197,7 +196,7 @@ function python_version::parse_python_version_file() {
 				those lines with '#'.
 			EOF
 			meta_set "failure_reason" "python-version-file::multiple-versions"
-			return 1
+			exit 1
 			;;
 	esac
 }
@@ -205,7 +204,7 @@ function python_version::parse_python_version_file() {
 # Read the Python version from a Pipfile.lock, which can exist in one of two optional fields,
 # `python_full_version` (as N.N.N) and `python_version` (as N.N). If both fields are
 # defined, we will use the value set in `python_full_version`. See:
-# https://pipenv.pypa.io/en/latest/specifiers.html#specifying-versions-of-python
+# https://pipenv.pypa.io/en/stable/specifiers.html#specifying-versions-of-python
 function python_version::read_pipenv_python_version() {
 	local build_dir="${1}"
 	local pipfile_lock_path="${build_dir}/Pipfile.lock"
@@ -229,7 +228,7 @@ function python_version::read_pipenv_python_version() {
 			Run 'pipenv lock' to regenerate/fix the lockfile.
 		EOF
 		meta_set "failure_reason" "pipfile-lock::invalid-json"
-		return 1
+		exit 1
 	fi
 
 	# Neither of the optional fields were found.
@@ -260,10 +259,10 @@ function python_version::read_pipenv_python_version() {
 			then run 'pipenv lock' to regenerate the lockfile.
 
 			For more information, see:
-			https://pipenv.pypa.io/en/latest/specifiers.html#specifying-versions-of-python
+			https://pipenv.pypa.io/en/stable/specifiers.html#specifying-versions-of-python
 		EOF
 		meta_set "failure_reason" "pipfile-lock::invalid-version"
-		return 1
+		exit 1
 	fi
 }
 
@@ -320,7 +319,7 @@ function python_version::resolve_python_version() {
 			EOF
 		fi
 		meta_set "failure_reason" "python-version::eol"
-		return 1
+		exit 1
 	fi
 
 	if (((major == 3 && minor > 13) || major >= 4)); then
@@ -358,7 +357,7 @@ function python_version::resolve_python_version() {
 			EOF
 		fi
 		meta_set "failure_reason" "python-version::unknown-major"
-		return 1
+		exit 1
 	fi
 
 	# If an exact Python version was requested, there's nothing to resolve.

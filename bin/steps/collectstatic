@@ -5,7 +5,7 @@
 # automatically be executed as part of the build process. If collectstatic
 # fails, your build fails.
 
-# This functionality will only activate if Django is in requirements.txt.
+# This functionality will only activate if Django is installed.
 
 # Runtime arguments:
 #   - $DISABLE_COLLECTSTATIC: disables this functionality.
@@ -64,7 +64,7 @@ export PYTHONPATH
 COLLECTSTATIC_LOG=$(mktemp)
 
 set +e
-python "$MANAGE_FILE" collectstatic --noinput --traceback 2>&1 | tee "$COLLECTSTATIC_LOG" | sed '/^Post-processed/d;/^Copying/d;/^$/d' | output::indent
+python "$MANAGE_FILE" collectstatic --noinput --traceback 2>&1 | tee "$COLLECTSTATIC_LOG" | sed --unbuffered '/^Post-processed/d;/^Copying/d;/^$/d' | output::indent
 COLLECTSTATIC_STATUS="${PIPESTATUS[0]}"
 set -e
 
