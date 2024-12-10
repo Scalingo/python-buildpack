@@ -105,11 +105,11 @@ hooks::run_hook "pre_compile"
 package_manager="$(package_manager::determine_package_manager "${BUILD_DIR}")"
 meta_set "package_manager" "${package_manager}"
 
-cached_python_version="$(cache::cached_python_version "${CACHE_DIR}")"
+cached_python_full_version="$(cache::cached_python_full_version "${CACHE_DIR}")"
 
 # We use the Bash 4.3+ `nameref` feature to pass back multiple values from this function
 # without having to hardcode globals. See: https://stackoverflow.com/a/38997681
-python_version::read_requested_python_version "${BUILD_DIR}" "${package_manager}" "${cached_python_version}" requested_python_version python_version_origin
+python_version::read_requested_python_version "${BUILD_DIR}" "${package_manager}" "${cached_python_full_version}" requested_python_version python_version_origin
 meta_set "python_version_reason" "${python_version_origin}"
 
 # TODO: More strongly recommend specifying a Python version (eg switch the messaging to
@@ -117,11 +117,11 @@ meta_set "python_version_reason" "${python_version_origin}"
 # TODO: Add runtime.txt deprecation warning.
 case "${python_version_origin}" in
 	default)
-		output-step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
+		output::step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	cached)
-		output-step "No Python version was specified. Using the same version as the last build: Python ${requested_python_version}"
+		output::step "No Python version was specified. Using the same major version as the last build: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	*)
@@ -134,7 +134,7 @@ python_major_version="${python_full_version%.*}"
 meta_set "python_version" "${python_full_version}"
 meta_set "python_version_major" "${python_major_version}"
 
-cache::restore "${BUILD_DIR}" "${CACHE_DIR}" "${STACK:?}" "${cached_python_version}" "${python_full_version}" "${package_manager}"
+cache::restore "${BUILD_DIR}" "${CACHE_DIR}" "${STACK:?}" "${cached_python_full_version}" "${python_full_version}" "${package_manager}"
 
 # The directory for the .profile.d scripts.
 mkdir -p "$(dirname "$PROFILE_PATH")"

@@ -41,7 +41,7 @@ the first build of an app, and then subsequent builds of that app will be
 pinned to that version unless the build cache is cleared or you request a
 different version.
 
-The current default Python version is: `3.12`
+The current default Python version is: 3.13
 
 The supported Python versions are:
 
