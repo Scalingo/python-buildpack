@@ -117,11 +117,11 @@ meta_set "python_version_reason" "${python_version_origin}"
 # TODO: Add runtime.txt deprecation warning.
 case "${python_version_origin}" in
 	default)
-		output-step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
+		output::step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	cached)
-		output-step "No Python version was specified. Using the same version as the last build: Python ${requested_python_version}"
+		output::step "No Python version was specified. Using the same version as the last build: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	*)
