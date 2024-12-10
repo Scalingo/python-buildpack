@@ -3,6 +3,53 @@
 ## [Unreleased]
 
 
+## [v269] - 2024-12-04
+
+- The Python 3.13 version alias now resolves to Python 3.13.1. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
+- The Python 3.12 version alias now resolves to Python 3.12.8. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
+- The Python 3.11 version alias now resolves to Python 3.11.11. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
+- The Python 3.10 version alias now resolves to Python 3.10.16. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
+- The Python 3.9 version alias now resolves to Python 3.9.21. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
+
+## [v268] - 2024-12-04
+
+- Updated pip from 24.0 to 24.3.1. ([#1685](https://github.com/heroku/heroku-buildpack-python/pull/1685))
+- Updated wheel from 0.44.0 to 0.45.1. ([#1707](https://github.com/heroku/heroku-buildpack-python/pull/1707))
+
+## [v267] - 2024-11-12
+
+- Deprecated using Pipenv without a lockfile (`Pipfile.lock`). ([#1695](https://github.com/heroku/heroku-buildpack-python/pull/1695))
+- Fixed Poetry venv creation when using an outdated Python version whose `ensurepip` module doesn't enable isolated mode, and the app's build directory contents shadows a package imported by pip (such as `brotli`). ([#1698](https://github.com/heroku/heroku-buildpack-python/pull/1698))
+
+## [v266] - 2024-11-08
+
+- Added a warning when the files for multiple package managers are found. In the future this warning will become an error. ([#1692](https://github.com/heroku/heroku-buildpack-python/pull/1692))
+- Updated the build log message shown when installing dependencies to include the package manager command being run. ([#1689](https://github.com/heroku/heroku-buildpack-python/pull/1689))
+- Changed test dependency installation on Heroku CI to now install `requirements.txt` and `requirements-test.txt` in a single `pip install` invocation rather than separately. This allows pip's resolver to resolve any version conflicts between the two files. ([#1689](https://github.com/heroku/heroku-buildpack-python/pull/1689))
+- Improved the error messages and buildpack metrics for package manager related failures. ([#1689](https://github.com/heroku/heroku-buildpack-python/pull/1689))
+- Improved the build log output, error messages and buildpack failure metrics for the NLTK downloader feature. ([#1690](https://github.com/heroku/heroku-buildpack-python/pull/1690))
+
+## [v265] - 2024-11-06
+
+- Fixed Poetry installation when using outdated patch versions of Python 3.8, 3.9 and 3.10, whose bundled pip doesn't support the `--python` option. ([#1687](https://github.com/heroku/heroku-buildpack-python/pull/1687))
+
+## [v264] - 2024-11-06
+
+- Added support for the package manager Poetry. Apps must have a `pyproject.toml` + `poetry.lock` and no other package manager files (otherwise pip/Pipenv will take precedence for backwards compatibility). ([#1682](https://github.com/heroku/heroku-buildpack-python/pull/1682))
+
+## [v263] - 2024-10-31
+
+- Fixed cache handling so that it now also discards the cache when the package manager (or its version) changes. ([#1679](https://github.com/heroku/heroku-buildpack-python/pull/1679))
+- Improved the build log output shown when restoring or discarding the cache. For example, if the cache was invalidated all reasons are now shown. ([#1679](https://github.com/heroku/heroku-buildpack-python/pull/1679))
+- Stopped performing unnecessary cache file copies when the cache is due to be invalidated. This required moving the cache restoration step to after the `bin/pre_compile` hook runs. ([#1679](https://github.com/heroku/heroku-buildpack-python/pull/1679))
+- Fixed cache restoration in the case where an app's `requirements.txt` was formerly a symlink. ([#1679](https://github.com/heroku/heroku-buildpack-python/pull/1679))
+- Added buildpack metrics for the status of the cache and duration of cache restoration/saving. ([#1679](https://github.com/heroku/heroku-buildpack-python/pull/1679))
+
+## [v262] - 2024-10-25
+
+- Updated buildpack-generated warning messages to use colour and be more consistently formatted. ([#1666](https://github.com/heroku/heroku-buildpack-python/pull/1666))
+- Improved build log output and error messages for the `bin/pre_compile` and `bin/post_compile` customisation hooks. ([#1667](https://github.com/heroku/heroku-buildpack-python/pull/1667))
+
 ## [v261] - 2024-10-14
 
 - Added support for configuring the Python version using a `.python-version` file. Both the `3.N` and `3.N.N` version forms are supported (the former is recommended). The existing `runtime.txt` file will take precedence if both files are found, however, we recommend switching to `.python-version` since it is more commonly supported in the Python ecosystem. ([#1664](https://github.com/heroku/heroku-buildpack-python/pull/1664))
@@ -1068,7 +1115,15 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v261...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v269...main
+[v269]: https://github.com/heroku/heroku-buildpack-python/compare/v268...v269
+[v268]: https://github.com/heroku/heroku-buildpack-python/compare/v267...v268
+[v267]: https://github.com/heroku/heroku-buildpack-python/compare/v266...v267
+[v266]: https://github.com/heroku/heroku-buildpack-python/compare/v265...v266
+[v265]: https://github.com/heroku/heroku-buildpack-python/compare/v264...v265
+[v264]: https://github.com/heroku/heroku-buildpack-python/compare/v263...v264
+[v263]: https://github.com/heroku/heroku-buildpack-python/compare/v262...v263
+[v262]: https://github.com/heroku/heroku-buildpack-python/compare/v261...v262
 [v261]: https://github.com/heroku/heroku-buildpack-python/compare/v260...v261
 [v260]: https://github.com/heroku/heroku-buildpack-python/compare/v259...v260
 [v259]: https://github.com/heroku/heroku-buildpack-python/compare/v258...v259

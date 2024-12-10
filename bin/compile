@@ -18,13 +18,16 @@ ENV_DIR="${3}"
 BUILDPACK_DIR=$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)
 
 source "${BUILDPACK_DIR}/bin/utils"
+source "${BUILDPACK_DIR}/lib/utils.sh"
+source "${BUILDPACK_DIR}/lib/cache.sh"
+source "${BUILDPACK_DIR}/lib/hooks.sh"
 source "${BUILDPACK_DIR}/lib/metadata.sh"
 source "${BUILDPACK_DIR}/lib/output.sh"
 source "${BUILDPACK_DIR}/lib/package_manager.sh"
 source "${BUILDPACK_DIR}/lib/pip.sh"
 source "${BUILDPACK_DIR}/lib/pipenv.sh"
 source "${BUILDPACK_DIR}/lib/python_version.sh"
-source "${BUILDPACK_DIR}/lib/utils.sh"
+source "${BUILDPACK_DIR}/lib/poetry.sh"
 
 compile_start_time=$(nowms)
 
@@ -73,7 +76,12 @@ EXPORT_PATH="${BUILDPACK_DIR}/export"
 GUNICORN_PROFILE_PATH="${BUILD_DIR}/.profile.d/python.gunicorn.sh"
 SQLALCHEMY_PROFILE_PATH="${BUILD_DIR}/.profile.d/python.sqlalchemy.sh"
 WEB_CONCURRENCY_PROFILE_PATH="${BUILD_DIR}/.profile.d/WEB_CONCURRENCY.sh"
+python_home="/app/.scalingo/python"
 
+# NB: Python must be added to PATH using the symlinked `/app` location and not its actual location
+# in BUILD_DIR, so that Python reports its location (via `sys.prefix`, `sys.executable` and others)
+# using `/app` paths which will still work at run-time after relocation. Amongst other things, this
+# ensures that the shebang lines in the entrypoint scripts of installed packages are correct.
 export PATH="/app/.scalingo/python/bin:/app/.scalingo/vendor/bin:${PATH}"
 # Tell Python to not buffer it's stdin/stdout.
 export PYTHONUNBUFFERED=1
@@ -91,67 +99,13 @@ export PIP_NO_PYTHON_VERSION_WARNING=1
 
 cd "$BUILD_DIR"
 
-# The Cache
-# ---------
-
-# The workflow for the Python Buildpack's cache is as follows:
-#
-# - `~/.scalingo/{known-paths}` are copied from the cache into the slug.
-# - The build is executed, modifying `~/.scalingo/{known-paths}`.
-# - Once the build is complete, `~/.scalingo/{known-paths}` is copied back into the cache.
-
-# Create the cache directory, if it doesn't exist.
-mkdir -p "$CACHE_DIR/.scalingo"
-
-# Restore old artifacts from the cache.
-mkdir -p .scalingo
-
-# The Python installation.
-cp -R "$CACHE_DIR/.scalingo/python" .scalingo/ &> /dev/null || true
-# A plain text file which contains the current stack being used (used for cache busting).
-cp -R "$CACHE_DIR/.scalingo/python-stack" .scalingo/ &> /dev/null || true
-# A plain text file which contains the current python version being used (used for cache busting).
-cp -R "$CACHE_DIR/.scalingo/python-version" .scalingo/ &> /dev/null || true
-# A plain text file which contains the current sqlite3 version being used (used for cache busting).
-cp -R "$CACHE_DIR/.scalingo/python-sqlite3-version" .scalingo/ &> /dev/null || true
-# "editable" installations of code repositories, via pip or pipenv.
-if [[ -d "$CACHE_DIR/.scalingo/src" ]]; then
-  cp -R "$CACHE_DIR/.scalingo/src" .scalingo/ &> /dev/null || true
-fi
-
 # Runs a `bin/pre_compile` script if found in the app source, allowing build customisation.
-source "${BUILDPACK_DIR}/bin/steps/hooks/pre_compile"
-
-# Sticky runtimes. If there was a previous build, and it used a given version of Python,
-# continue to use that version of Python in perpituity (warnings will be raised if
-# they are out–of–date).
-# TODO: Clear the cache if this isn't a valid version, as part of the cache refactor.
-# (Currently the version is instead validated in `read_requested_python_version()`)
-if [[ -f "$CACHE_DIR/.scalingo/python-version" ]]; then
-	cached_python_version="$( cat "$CACHE_DIR/.scalingo/python-version" )"
-	# `python-X.Y.Z` -> `X.Y`
-	cached_python_version="${cached_python_version#python-}"
-else
-	cached_python_version=
-fi
-
-# We didn't always record the stack version. This code is in place because of that.
-if [ -f "$CACHE_DIR/.scalingo/python-stack" ]; then
-	CACHED_PYTHON_STACK="$( cat "${CACHE_DIR}/.scalingo/python-stack" )"
-else
-	# shellcheck disable=SC2154 # TODO: Env var is referenced but not assigned.
-	CACHED_PYTHON_STACK="${STACK}"
-fi
+hooks::run_hook "pre_compile"
 
 package_manager="$(package_manager::determine_package_manager "${BUILD_DIR}")"
 meta_set "package_manager" "${package_manager}"
 
-# TODO: Move this warning to lib/package_manager.sh once `output::warning()` exists
-# (puts-warn outputs to stdout, which would break `determine_package_manager()` as is).
-# TODO: Adjust this warning to mention support for missing Pipfile.lock will be removed soon.
-if [[ "${package_manager}" == "pipenv" && ! -f "${BUILD_DIR}/Pipfile.lock" ]]; then
-	puts-warn "No 'Pipfile.lock' found! We recommend you commit this into your repository."
-fi
+cached_python_version="$(cache::cached_python_version "${CACHE_DIR}")"
 
 # We use the Bash 4.3+ `nameref` feature to pass back multiple values from this function
 # without having to hardcode globals. See: https://stackoverflow.com/a/38997681
@@ -163,15 +117,15 @@ meta_set "python_version_reason" "${python_version_origin}"
 # TODO: Add runtime.txt deprecation warning.
 case "${python_version_origin}" in
 	default)
-		puts-step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
+		output-step "No Python version was specified. Using the buildpack default: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	cached)
-		puts-step "No Python version was specified. Using the same version as the last build: Python ${requested_python_version}"
+		output-step "No Python version was specified. Using the same version as the last build: Python ${requested_python_version}"
 		echo "       To use a different version, see: https://doc.scalingo.com/languages/python/start"
 		;;
 	*)
-		puts-step "Using Python ${requested_python_version} specified in ${python_version_origin}"
+		output::step "Using Python ${requested_python_version} specified in ${python_version_origin}"
 		;;
 esac
 
@@ -179,6 +133,8 @@ python_full_version="$(python_version::resolve_python_version "${requested_pytho
 python_major_version="${python_full_version%.*}"
 meta_set "python_version" "${python_full_version}"
 meta_set "python_version_major" "${python_major_version}"
+
+cache::restore "${BUILD_DIR}" "${CACHE_DIR}" "${STACK:?}" "${cached_python_version}" "${python_full_version}" "${package_manager}"
 
 # The directory for the .profile.d scripts.
 mkdir -p "$(dirname "$PROFILE_PATH")"
@@ -205,15 +161,17 @@ meta_time "python_install_duration" "${install_python_start_time}"
 
 # Install the package manager and related tools.
 package_manager_install_start_time=$(nowms)
-bundled_pip_module_path="$(utils::bundled_pip_module_path "${BUILD_DIR}")"
 case "${package_manager}" in
 	pip)
-		pip::install_pip_setuptools_wheel "${bundled_pip_module_path}" "${python_major_version}"
+		pip::install_pip_setuptools_wheel "${python_home}" "${python_major_version}"
 		;;
 	pipenv)
 		# TODO: Stop installing pip when using Pipenv.
-		pip::install_pip_setuptools_wheel "${bundled_pip_module_path}" "${python_major_version}"
+		pip::install_pip_setuptools_wheel "${python_home}" "${python_major_version}"
 		pipenv::install_pipenv
+		;;
+	poetry)
+		poetry::install_poetry "${CACHE_DIR}" "${EXPORT_PATH}"
 		;;
 	*)
 		utils::abort_internal_error "Unhandled package manager: ${package_manager}"
@@ -224,8 +182,8 @@ meta_time "package_manager_install_duration" "${package_manager_install_start_ti
 # SQLite3 support.
 # Installs the sqlite3 dev headers and sqlite3 binary but not the
 # libsqlite3-0 library since that exists in the base image.
-# We skip this step on Python 3.13, as a first step towards removing this feature.
-if [[ "${python_major_version}" == +(3.8|3.9|3.10|3.11|3.12) ]]; then
+# We skip this step on Python 3.13 or when using Poetry, as a first step towards removing this feature.
+if [[ "${python_major_version}" == +(3.8|3.9|3.10|3.11|3.12) && "${package_manager}" != "poetry" ]]; then
 	install_sqlite_start_time=$(nowms)
 	source "${BUILDPACK_DIR}/bin/steps/sqlite3"
 	buildpack_sqlite3_install
@@ -240,6 +198,9 @@ case "${package_manager}" in
 		;;
 	pipenv)
 		pipenv::install_dependencies
+		;;
+	poetry)
+		poetry::install_dependencies
 		;;
 	*)
 		utils::abort_internal_error "Unhandled package manager: ${package_manager}"
@@ -310,21 +271,8 @@ cp "${BUILDPACK_DIR}/vendor/python.gunicorn.sh" "$GUNICORN_PROFILE_PATH"
 cp "${BUILDPACK_DIR}/vendor/python.sqlalchemy.sh" "$SQLALCHEMY_PROFILE_PATH"
 
 # Runs a `bin/post_compile` script if found in the app source, allowing build customisation.
-source "${BUILDPACK_DIR}/bin/steps/hooks/post_compile"
+hooks::run_hook "post_compile"
 
-# Store new artifacts in the cache.
-rm -rf "$CACHE_DIR/.scalingo/python"
-rm -rf "$CACHE_DIR/.scalingo/python-version"
-rm -rf "$CACHE_DIR/.scalingo/python-stack"
-rm -rf "$CACHE_DIR/.scalingo/src"
-
-mkdir -p "$CACHE_DIR/.scalingo"
-cp -R .scalingo/python "$CACHE_DIR/.scalingo/"
-cp -R .scalingo/python-version "$CACHE_DIR/.scalingo/"
-cp -R .scalingo/python-stack "$CACHE_DIR/.scalingo/" &> /dev/null || true
-cp -R .scalingo/vendor "$CACHE_DIR/.scalingo/" &> /dev/null || true
-if [[ -d .scalingo/src ]]; then
-  cp -R .scalingo/src "$CACHE_DIR/.scalingo/" &> /dev/null || true
-fi
+cache::save "${BUILD_DIR}" "${CACHE_DIR}" "${STACK}" "${python_full_version}" "${package_manager}"
 
 meta_time "total_duration" "${compile_start_time}"

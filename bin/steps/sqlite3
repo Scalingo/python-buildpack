@@ -63,6 +63,8 @@ sqlite3_install() {
 }
 
 buildpack_sqlite3_install() {
+	output::step "Installing SQLite3"
+
 	# TODO: This never actual prints failure or even aborts the build, since
 	# the conditional disables `set -e` inside the called function:
 	# https://stackoverflow.com/q/19789102
@@ -76,7 +78,4 @@ buildpack_sqlite3_install() {
 		echo "Sqlite3 failed to install."
 		# mcount "failure.python.sqlite3"
 	fi
-
-	# shellcheck disable=SC2154 # TODO: Env var is referenced but not assigned.
-	mkdir -p "$CACHE_DIR/.scalingo/"
 }

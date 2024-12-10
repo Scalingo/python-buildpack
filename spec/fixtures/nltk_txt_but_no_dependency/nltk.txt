@@ -1,2 +1,0 @@
-city_database
-stopwords

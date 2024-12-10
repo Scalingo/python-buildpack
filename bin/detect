@@ -51,13 +51,13 @@ done
 # Note: This error message intentionally doesn't list all of the filetypes above,
 # since during compile the build will still require a package manager file, so it
 # makes sense to describe the stricter requirements upfront.
-display_error <<EOF
+output::error <<EOF
 Error: Your app is configured to use the Python buildpack,
 but we couldn't find any supported Python project files.
 
-A Python app on Scalingo must have either a 'requirements.txt' or
-'Pipfile' package manager file in the root directory of its
-source code.
+A Python app on Scalingo must have either a 'requirements.txt',
+'Pipfile' or 'poetry.lock' package manager file in the root
+directory of its source code.
 
 Currently the root directory of your app contains:
 
