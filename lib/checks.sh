@@ -4,10 +4,10 @@ function checks::ensure_supported_stack() {
 	local stack="${1}"
 
 	case "${stack}" in
-		scalingo-20 | scalingo-22 | scalingo-24)
+		heroku-20 | heroku-22 | heroku-24 | scalingo-20 | scalingo-22 | scalingo-24)
 			return 0
 			;;
-		cedar* | scalingo-14 | scalingo-18)
+		cedar* | heroku-16 | heroku-18 | scalingo-14 | scalingo-18)
 			# This error will only ever be seen on non-Heroku environments, since the
 			# Heroku build system rejects builds using EOL stacks.
 			output::error <<-EOF
