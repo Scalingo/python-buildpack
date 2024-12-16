@@ -20,7 +20,7 @@ function package_manager::determine_package_manager() {
 
 			A 'Pipfile' file was found, however, the associated 'Pipfile.lock'
 			Pipenv lockfile was not. This means your app dependency versions
-			are not pinned, which means the package versions used on Heroku
+			are not pinned, which means the package versions used on Scalingo
 			might not match those installed in other environments.
 
 			For now, we will install your dependencies without a lockfile,
@@ -59,6 +59,10 @@ function package_manager::determine_package_manager() {
 		meta_set "setup_py_only" "false"
 	fi
 
+	if [[ -f "${build_dir}/uv.lock" ]]; then
+		meta_set "uv_lockfile" "true"
+	fi
+
 	local num_package_managers_found=${#package_managers_found[@]}
 
 	case "${num_package_managers_found}" in
@@ -87,7 +91,12 @@ function package_manager::determine_package_manager() {
 				Otherwise, add a package manager file to your app. If your app has
 				no dependencies, then create an empty 'requirements.txt' file.
 
-				For help with using Python on Heroku, see:
+				If you would like to see support for the package manager uv,
+				please vote and comment on these GitHub issues:
+				https://github.com/heroku/heroku-buildpack-python/issues/1616
+				https://github.com/heroku/roadmap/issues/323
+
+				For help with using Python on Scalingo, see:
 				https://doc.scalingo.com/languages/python/start
 			EOF
 			meta_set "failure_reason" "package-manager::none-found"

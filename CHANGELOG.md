@@ -3,6 +3,26 @@
 ## [Unreleased]
 
 
+## [v272] - 2024-12-13
+
+- Added a warning if the Python buildpack has been run multiple times in the same build. In January 2025 this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
+- Added a warning if an existing `.heroku/python/` directory is found in the app source. In January 2025 this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
+- Improved the error message shown if the buildpack is used on an unsupported stack. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
+- Fixed Dev Center links to reflect recent article URL changes. ([#1723](https://github.com/heroku/heroku-buildpack-python/pull/1723))
+- Added metrics for the existence of a uv lockfile. ([#1725](https://github.com/heroku/heroku-buildpack-python/pull/1725))
+
+## [v271] - 2024-12-12
+
+- Updated the Python 3.8 EOL warning message with the new sunset date. ([#1721](https://github.com/heroku/heroku-buildpack-python/pull/1721))
+- Improved the error message shown when pip install fails due to pip rejecting a package with invalid version metadata. ([#1718](https://github.com/heroku/heroku-buildpack-python/pull/1718))
+- Improved the error message shown when the copy of pip bundled in the `ensurepip` module cannot be found. ([#1720](https://github.com/heroku/heroku-buildpack-python/pull/1720))
+
+## [v270] - 2024-12-10
+
+- Changed the default Python version for new apps from 3.12 to 3.13. ([#1715](https://github.com/heroku/heroku-buildpack-python/pull/1715))
+- Changed Python version pinning behaviour for apps that do not specify a Python version. Repeat builds are now pinned to the major Python version only (`3.X`) instead of the full Python version (`3.X.Y`), so that they always use the latest patch version. ([#1714](https://github.com/heroku/heroku-buildpack-python/pull/1714))
+- Updated Poetry from 1.8.4 to 1.8.5. ([#1716](https://github.com/heroku/heroku-buildpack-python/pull/1716))
+
 ## [v269] - 2024-12-04
 
 - The Python 3.13 version alias now resolves to Python 3.13.1. ([#1712](https://github.com/heroku/heroku-buildpack-python/pull/1712))
@@ -1115,7 +1135,10 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v269...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v272...main
+[v272]: https://github.com/heroku/heroku-buildpack-python/compare/v271...v272
+[v271]: https://github.com/heroku/heroku-buildpack-python/compare/v270...v271
+[v270]: https://github.com/heroku/heroku-buildpack-python/compare/v269...v270
 [v269]: https://github.com/heroku/heroku-buildpack-python/compare/v268...v269
 [v268]: https://github.com/heroku/heroku-buildpack-python/compare/v267...v268
 [v267]: https://github.com/heroku/heroku-buildpack-python/compare/v266...v267
