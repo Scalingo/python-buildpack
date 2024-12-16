@@ -20,7 +20,7 @@ function package_manager::determine_package_manager() {
 
 			A 'Pipfile' file was found, however, the associated 'Pipfile.lock'
 			Pipenv lockfile was not. This means your app dependency versions
-			are not pinned, which means the package versions used on Heroku
+			are not pinned, which means the package versions used on Scalingo
 			might not match those installed in other environments.
 
 			For now, we will install your dependencies without a lockfile,
@@ -96,7 +96,7 @@ function package_manager::determine_package_manager() {
 				https://github.com/heroku/heroku-buildpack-python/issues/1616
 				https://github.com/heroku/roadmap/issues/323
 
-				For help with using Python on Heroku, see:
+				For help with using Python on Scalingo, see:
 				https://doc.scalingo.com/languages/python/start
 			EOF
 			meta_set "failure_reason" "package-manager::none-found"
