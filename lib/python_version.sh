@@ -350,7 +350,7 @@ function python_version::resolve_python_version() {
 				https://doc.scalingo.com/languages/python/start
 
 				If it has, make sure that you are using the latest version
-				of this buildpack.
+				of this buildpack, and have not pinned to an older release.
 
 				Otherwise, switch to a supported version (such as Python ${DEFAULT_PYTHON_MAJOR_VERSION})
 				by updating the version configured via the '${python_version_origin}' file.
