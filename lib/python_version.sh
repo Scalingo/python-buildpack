@@ -339,9 +339,7 @@ function python_version::resolve_python_version() {
 				This can occur if you have downgraded the version of the
 				buildpack to an older version.
 
-				Please switch back to a newer version of this buildpack:
-				https://devcenter.heroku.com/articles/managing-buildpacks#view-your-buildpacks
-				https://devcenter.heroku.com/articles/managing-buildpacks#classic-buildpacks-references
+				Please switch back to the latest version of this buildpack.
 
 				Alternatively, request an older Python version by creating
 				a .python-version file in the root directory of your app,
