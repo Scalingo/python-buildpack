@@ -3,6 +3,16 @@
 ## [Unreleased]
 
 
+## [v275] - 2025-01-13
+
+- Updated Poetry from 1.8.5 to 2.0.1. ([#1734](https://github.com/heroku/heroku-buildpack-python/pull/1734))
+
+## [v274] - 2025-01-08
+
+- Added a deprecation warning for Python 3.9. ([#1732](https://github.com/heroku/heroku-buildpack-python/pull/1732))
+- Removed support for Python 3.8. ([#1732](https://github.com/heroku/heroku-buildpack-python/pull/1732))
+- Improved the error messages shown for EOL or unrecognised major Python versions. ([#1732](https://github.com/heroku/heroku-buildpack-python/pull/1732))
+
 ## [v273] - 2025-01-03
 
 - Added more Python project related file and directory names to the list recognised by buildpack detection. ([#1729](https://github.com/heroku/heroku-buildpack-python/pull/1729))
@@ -1140,7 +1150,9 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v273...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v275...main
+[v275]: https://github.com/heroku/heroku-buildpack-python/compare/v274...v275
+[v274]: https://github.com/heroku/heroku-buildpack-python/compare/v273...v274
 [v273]: https://github.com/heroku/heroku-buildpack-python/compare/v272...v273
 [v272]: https://github.com/heroku/heroku-buildpack-python/compare/v271...v272
 [v271]: https://github.com/heroku/heroku-buildpack-python/compare/v270...v271
