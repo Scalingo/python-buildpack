@@ -28,6 +28,10 @@ on the buildpack's default Python version.
 For example, to request the latest patch release of Python 3.13, create a
 `.python-version` file in the root directory of your app containing: `3.13`
 
+We strongly recommend that you use the major version form instead of pinning to
+an exact version, since it will allow your app to receive Python security
+updates.
+
 The buildpack will look for a Python version in the following places (in
 descending order of precedence):
 
