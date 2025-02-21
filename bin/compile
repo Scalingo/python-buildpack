@@ -27,8 +27,9 @@ source "${BUILDPACK_DIR}/lib/output.sh"
 source "${BUILDPACK_DIR}/lib/package_manager.sh"
 source "${BUILDPACK_DIR}/lib/pip.sh"
 source "${BUILDPACK_DIR}/lib/pipenv.sh"
-source "${BUILDPACK_DIR}/lib/python_version.sh"
 source "${BUILDPACK_DIR}/lib/poetry.sh"
+source "${BUILDPACK_DIR}/lib/python_version.sh"
+source "${BUILDPACK_DIR}/lib/python.sh"
 
 compile_start_time=$(nowms)
 
@@ -47,13 +48,6 @@ export PATH=:/usr/local/bin:$PATH
 
 # Exported for use in subshells, such as the steps run via sub_env.
 export BUILD_DIR CACHE_DIR ENV_DIR
-
-# Set the base URL for downloading buildpack assets like Python runtimes.
-# The user can provide BUILDPACK_S3_BASE_URL to specify a custom target.
-# Note: this is designed for non-Heroku use, as it does not use the user-provided
-# environment variable mechanism (the ENV_DIR).
-S3_BASE_URL="${BUILDPACK_S3_BASE_URL:-"https://python-binaries.scalingo.com"}"
-# This has to be exported since it's used by the geo-libs step which is run in a subshell.
 
 # Common Problem Warnings:
 # This section creates a temporary file in which to stick the output of `pip install`.
@@ -120,6 +114,7 @@ cached_python_full_version="$(cache::cached_python_full_version "${CACHE_DIR}")"
 # We use the Bash 4.3+ `nameref` feature to pass back multiple values from this function
 # without having to hardcode globals. See: https://stackoverflow.com/a/38997681
 python_version::read_requested_python_version "${BUILD_DIR}" "${package_manager}" "${cached_python_full_version}" requested_python_version python_version_origin
+meta_set "python_version_requested" "${requested_python_version}"
 meta_set "python_version_reason" "${python_version_origin}"
 
 # TODO: More strongly recommend specifying a Python version (eg switch the messaging to
@@ -143,12 +138,19 @@ python_major_version="${python_full_version%.*}"
 meta_set "python_version" "${python_full_version}"
 meta_set "python_version_major" "${python_major_version}"
 
+if [[ "${requested_python_version}" == "${python_full_version}" ]]; then
+	meta_set "python_version_pinned" "true"
+else
+	meta_set "python_version_pinned" "false"
+fi
+
 if [[ "${python_version_origin}" == "runtime.txt" ]]; then
 	output::warning <<-EOF
 		Warning: The runtime.txt file is deprecated.
 
 		The runtime.txt file is deprecated since it has been replaced
-		by the more widely supported .python-version file.
+		by the more widely supported .python-version file:
+		https://devcenter.heroku.com/changelog-items/3141
 
 		Please delete your runtime.txt file and create a new file named:
 		.python-version
@@ -167,6 +169,9 @@ if [[ "${python_version_origin}" == "runtime.txt" ]]; then
 		this warning will be made an error.
 	EOF
 fi
+
+python_version::warn_if_deprecated_major_version "${python_major_version}" "${python_version_origin}"
+python_version::warn_if_patch_update_available "${python_full_version}" "${python_major_version}" "${python_version_origin}"
 
 cache::restore "${BUILD_DIR}" "${CACHE_DIR}" "${STACK}" "${cached_python_full_version}" "${python_full_version}" "${package_manager}"
 
@@ -188,10 +193,7 @@ if [[ "$(realpath "${BUILD_DIR}")" != "$(realpath /app)" ]]; then
     # Note: .scalingo/src is copied in later.
 fi
 
-# Download and install Python using pre-built binaries from S3.
-install_python_start_time=$(nowms)
-source "${BUILDPACK_DIR}/bin/steps/python"
-meta_time "python_install_duration" "${install_python_start_time}"
+python::install "${BUILD_DIR}" "${STACK}" "${python_full_version}" "${python_major_version}" "${python_version_origin}"
 
 # Install the package manager and related tools.
 package_manager_install_start_time=$(nowms)

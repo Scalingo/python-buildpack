@@ -104,7 +104,7 @@ function python_version::parse_runtime_txt() {
 			in the correct format.
 
 			The following file contents were found, which aren't valid:
-			${contents}
+			${contents:0:100}
 
 			However, the runtime.txt file is deprecated since it has
 			been replaced by the .python-version file. As such, we
@@ -125,6 +125,7 @@ function python_version::parse_runtime_txt() {
 			your app to receive Python security updates.
 		EOF
 		meta_set "failure_reason" "runtime-txt::invalid-version"
+		meta_set "failure_detail" "${contents:0:50}"
 		exit 1
 	fi
 }
@@ -174,6 +175,7 @@ function python_version::parse_python_version_file() {
 					your app to receive Python security updates.
 				EOF
 				meta_set "failure_reason" "python-version-file::invalid-version"
+				meta_set "failure_detail" "${line:0:50}"
 				exit 1
 			fi
 			;;
@@ -193,9 +195,11 @@ function python_version::parse_python_version_file() {
 				begin with a '#', otherwise it will be treated as a comment.
 			EOF
 			meta_set "failure_reason" "python-version-file::no-version"
+			meta_set "failure_detail" "${contents:0:50}"
 			exit 1
 			;;
 		*)
+			local first_five_version_lines=("${version_lines[@]:0:5}")
 			output::error <<-EOF
 				Error: Invalid Python version in .python-version.
 
@@ -203,7 +207,7 @@ function python_version::parse_python_version_file() {
 
 				$(
 					IFS=$'\n'
-					echo "${version_lines[*]}"
+					echo "${first_five_version_lines[*]}"
 				)
 
 				Update the file so it contains only one Python version.
@@ -212,6 +216,10 @@ function python_version::parse_python_version_file() {
 				lines begin with a '#', so that they are ignored.
 			EOF
 			meta_set "failure_reason" "python-version-file::multiple-versions"
+			meta_set "failure_detail" "$(
+				IFS=,
+				echo "${first_five_version_lines[*]}"
+			)"
 			exit 1
 			;;
 	esac
@@ -233,17 +241,19 @@ function python_version::read_pipenv_python_version() {
 	fi
 
 	if ! version=$(jq --raw-output '._meta.requires.python_full_version // ._meta.requires.python_version' "${pipfile_lock_path}" 2>&1); then
+		local jq_error_message="${version}"
 		output::error <<-EOF
 			Error: Can't parse Pipfile.lock.
 
 			A Pipfile.lock file was found, however, it couldn't be parsed:
-			${version}
+			${jq_error_message}
 
 			This is likely due to it not being valid JSON.
 
 			Run 'pipenv lock' to regenerate/fix the lockfile.
 		EOF
 		meta_set "failure_reason" "pipfile-lock::invalid-json"
+		meta_set "failure_detail" "${jq_error_message:0:100}"
 		exit 1
 	fi
 
@@ -282,6 +292,7 @@ function python_version::read_pipenv_python_version() {
 			https://pipenv.pypa.io/en/stable/specifiers.html#specifying-versions-of-python
 		EOF
 		meta_set "failure_reason" "pipfile-lock::invalid-version"
+		meta_set "failure_detail" "${version:0:50}"
 		exit 1
 	fi
 }
@@ -342,6 +353,7 @@ function python_version::resolve_python_version() {
 			EOF
 		fi
 		meta_set "failure_reason" "python-version::eol"
+		meta_set "failure_detail" "${major}.${minor}"
 		exit 1
 	fi
 
@@ -385,6 +397,7 @@ function python_version::resolve_python_version() {
 			EOF
 		fi
 		meta_set "failure_reason" "python-version::unknown-major"
+		meta_set "failure_detail" "${major}.${minor}"
 		exit 1
 	fi
 
@@ -399,4 +412,63 @@ function python_version::resolve_python_version() {
 		3.13) echo "${LATEST_PYTHON_3_13}" ;;
 		*) utils::abort_internal_error "Unhandled Python major version: ${requested_python_version}" ;;
 	esac
+}
+
+function python_version::warn_if_deprecated_major_version() {
+	local requested_major_version="${1}"
+	local version_origin="${2}"
+
+	if [[ "${requested_major_version}" == "3.9" ]]; then
+		output::warning <<-EOF
+			Warning: Support for Python 3.9 is ending soon!
+
+			Python 3.9 will reach its upstream end-of-life in October 2025,
+			at which point it will no longer receive security updates:
+			https://devguide.python.org/versions/#supported-versions
+
+			As such, support for Python 3.9 will be removed from this
+			buildpack on 7th January 2026.
+
+			Upgrade to a newer Python version as soon as possible, by
+			changing the version in your ${version_origin} file.
+
+			For more information, see:
+			https://devcenter.heroku.com/articles/python-support#supported-python-versions
+		EOF
+	fi
+}
+
+function python_version::warn_if_patch_update_available() {
+	local python_full_version="${1}"
+	local python_major_version="${2}"
+	local python_version_origin="${3}"
+
+	local latest_known_patch_version
+	latest_known_patch_version="$(python_version::resolve_python_version "${python_major_version}" "${python_version_origin}")"
+	# Extract the patch version component of the version strings (ie: the '2' in '3.13.2').
+	local requested_patch_number="${python_full_version##*.}"
+	local latest_patch_number="${latest_known_patch_version##*.}"
+
+	if ((requested_patch_number < latest_patch_number)); then
+		output::warning <<-EOF
+			Warning: A Python patch update is available!
+
+			Your app is using Python ${python_full_version}, however, there is a newer
+			patch release of Python ${python_major_version} available: ${latest_known_patch_version}
+
+			It is important to always use the latest patch version of
+			Python to keep your app secure.
+
+			Update your ${python_version_origin} file to use the new version.
+
+			We strongly recommend that you do not pin your app to an
+			exact Python version such as ${python_full_version}, and instead only specify
+			the major Python version of ${python_major_version} in your ${python_version_origin} file.
+			This will allow your app to receive the latest available Python
+			patch version automatically and prevent this warning.
+		EOF
+		meta_set "python_version_outdated" "true"
+	else
+		meta_set "python_version_outdated" "false"
+	fi
 }
