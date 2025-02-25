@@ -102,6 +102,10 @@ function cache::restore() {
 				elif [[ "${cached_pipenv_version}" != "${PIPENV_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version} to ${PIPENV_VERSION}")
 				fi
+				# TODO: Remove this next time the Pipenv version is bumped (since it will trigger cache invalidation of its own)
+				if [[ -d "${cache_dir}/.heroku/src" ]]; then
+					cache_invalidation_reasons+=("The editable VCS repository location has changed (and Pipenv doesn't handle this correctly)")
+				fi
 				;;
 			poetry)
 				local cached_poetry_version
@@ -129,7 +133,6 @@ function cache::restore() {
 			"${cache_dir}/.scalingo/python-poetry" \
 			"${cache_dir}/.scalingo/python-stack" \
 			"${cache_dir}/.scalingo/python-version" \
-			"${cache_dir}/.scalingo/src" \
 			"${cache_dir}/.scalingo/requirements.txt"
 
 		meta_set "cache_status" "discarded"
@@ -143,17 +146,13 @@ function cache::restore() {
 		# TODO: Compare the performance of moving the directory vs copying files.
 		cp -R "${cache_dir}/.scalingo/python" "${build_dir}/.scalingo/" &>/dev/null || true
 
-		# Editable VCS code repositories, used by pip/pipenv.
-		if [[ -d "${cache_dir}/.scalingo/src" ]]; then
-			cp -R "${cache_dir}/.scalingo/src" "${build_dir}/.scalingo/" &>/dev/null || true
-		fi
-
 		meta_set "cache_status" "reused"
 	fi
 
 	# Remove any legacy cache contents written by older buildpack versions.
 	rm -rf \
 		"${cache_dir}/.scalingo/python-sqlite3-version" \
+		"${cache_dir}/.scalingo/src" \
 		"${cache_dir}/.scalingo/vendor"
 
 	meta_time "cache_restore_duration" "${cache_restore_start_time}"
@@ -174,13 +173,6 @@ function cache::save() {
 
 	rm -rf "${cache_dir}/.scalingo/python"
 	cp -R "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
-
-	# Editable VCS code repositories, used by pip/pipenv.
-	rm -rf "${cache_dir}/.scalingo/src"
-	if [[ -d "${build_dir}/.scalingo/src" ]]; then
-		# TODO: Investigate why errors are ignored and ideally stop doing so.
-		cp -R "${build_dir}/.scalingo/src" "${cache_dir}/.scalingo/" &>/dev/null || true
-	fi
 
 	# Metadata used by subsequent builds to determine whether the cache can be reused.
 	# These are written/consumed via separate files and not the metadata store for compatibility
