@@ -3,6 +3,13 @@
 ## [Unreleased]
 
 
+## [v279] - 2025-02-26
+
+- Updated Poetry from 2.0.1 to 2.1.1. ([#1758](https://github.com/heroku/heroku-buildpack-python/pull/1758))
+- Stopped filtering out pip's `Requirement already satisfied:` log lines when installing dependencies. ([#1765](https://github.com/heroku/heroku-buildpack-python/pull/1765))
+- Improved the error messages shown if installing pip/Poetry/Pipenv fails. ([#1764](https://github.com/heroku/heroku-buildpack-python/pull/1764))
+- Stopped installing pip into Poetry's virtual environment. ([#1761](https://github.com/heroku/heroku-buildpack-python/pull/1761))
+
 ## [v278] - 2025-02-24
 
 - Added build-time rewriting of editable VCS dependency paths (in addition to the existing run-time rewriting), to work around an upstream Pipenv bug with editable VCS dependencies not being reinstalled correctly for cached builds. ([#1756](https://github.com/heroku/heroku-buildpack-python/pull/1756))
@@ -1173,7 +1180,8 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v278...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v279...main
+[v279]: https://github.com/heroku/heroku-buildpack-python/compare/v278...v279
 [v278]: https://github.com/heroku/heroku-buildpack-python/compare/v277...v278
 [v277]: https://github.com/heroku/heroku-buildpack-python/compare/v276...v277
 [v276]: https://github.com/heroku/heroku-buildpack-python/compare/v275...v276

@@ -46,6 +46,7 @@ function pip::install_pip_setuptools_wheel() {
 	# app's requirements.txt in the last build). The install will be a no-op if the versions match.
 	output::step "Installing ${packages_display_text}"
 
+	# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
 	if ! {
 		python "${bundled_pip_module_path}" \
 			install \
@@ -53,15 +54,18 @@ function pip::install_pip_setuptools_wheel() {
 			--no-cache-dir \
 			--no-input \
 			--quiet \
-			"${packages_to_install[@]}"
+			"${packages_to_install[@]}" \
+			|& output::indent
 	}; then
 		output::error <<-EOF
 			Error: Unable to install pip.
 
+			In some cases, this happens due to a temporary issue with
+			the network connection or Python Package Index (PyPI).
+
 			Try building again to see if the error resolves itself.
 
-			If that does not help, check the status of PyPI (the Python
-			package repository service), here:
+			If that does not help, check the status of PyPI here:
 			https://status.python.org
 		EOF
 		meta_set "failure_reason" "install-package-manager::pip"
@@ -102,6 +106,8 @@ function pip::install_dependencies() {
 	# We only display the most relevant command args here, to improve the signal to noise ratio.
 	output::step "Installing dependencies using '${pip_install_command[*]}'"
 
+	# The sed usage is to reduce the verbosity of output lines like:
+	# "Requirement already satisfied: typing-extensions==4.12.2 in /app/.heroku/python/lib/python3.13/site-packages (from -r requirements.txt (line 5)) (4.12.2)"
 	# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
 	if ! {
 		"${pip_install_command[@]}" \
@@ -112,7 +118,7 @@ function pip::install_dependencies() {
 			--progress-bar off \
 			--src='/app/.scalingo/src' \
 			|& tee "${WARNINGS_LOG:?}" \
-			|& sed --unbuffered --expression '/Requirement already satisfied/d' \
+			|& sed --unbuffered --expression 's# in /app/.scalingo/python/lib/python.*/site-packages##' \
 			|& output::indent
 	}; then
 		# TODO: Overhaul warnings and combine them with error handling.
