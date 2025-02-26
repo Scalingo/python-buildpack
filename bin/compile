@@ -179,7 +179,7 @@ mkdir -p "$(dirname "$PROFILE_PATH")"
 # Create the directory for editable source code installation, if it doesn't exist.
 mkdir -p /app/.scalingo/src
 
-# On Heroku CI, builds happen in `/app`. Otherwise, on the Scalingo platform,
+# On Scalingo, builds happen in `/app`. Otherwise, on the Scalingo platform,
 # they occur in a temp directory. Beacuse Python is not portable, we must create
 # symlinks to emulate that we are operating in `/app` during the build process.
 # This is (hopefully obviously) because apps end up running from `/app` in production.
@@ -205,7 +205,7 @@ case "${package_manager}" in
 		pipenv::install_pipenv
 		;;
 	poetry)
-		poetry::install_poetry "${CACHE_DIR}" "${EXPORT_PATH}"
+		poetry::install_poetry "${python_home}" "${python_major_version}" "${CACHE_DIR}" "${EXPORT_PATH}"
 		;;
 	*)
 		utils::abort_internal_error "Unhandled package manager: ${package_manager}"
@@ -282,12 +282,12 @@ EOT
 
 # When dependencies are installed in editable mode, the package manager/build backend creates `.pth`
 # (and related) files in site-packages, which contain absolute path references to the actual location
-# of the packages. By default the Heroku build runs from a directory like `/tmp/build_<hash>`, which
+# of the packages. By default the Scalingo build runs from a directory like `/tmp/build_<hash>`, which
 # changes every build and also differs from the app location at runtime (`/app`). This means any build
 # directory paths referenced in .pth and related files will no longer exist at runtime or during cached
 # rebuilds, unless we rewrite the paths.
 #
-# Ideally, we would be able to rewrite all paths to use the `/app/.heroku/python/` symlink trick we use
+# Ideally, we would be able to rewrite all paths to use the `/app/.scalingo/python/` symlink trick we use
 # when invoking Python, since then the same path would work across the current build, runtime and cached
 # rebuilds. However, this trick only works for paths under that directory (since it's not possible to
 # symlink `/app` or other directories we don't own), and when apps use path-based editable dependencies
@@ -297,7 +297,7 @@ EOT
 # rewriting for path-based editable dependencies at app boot instead.
 #
 # For VCS editable dependencies, we can use the symlink trick and so configure the repo checkout location
-# as `/app/.heroku/python/src/`, which in theory should mean the `.pth` files use that path. However,
+# as `/app/.scalingo/python/src/`, which in theory should mean the `.pth` files use that path. However,
 # some build backends (such as setuptools' PEP660 implementation) call realpath on it causing the
 # `/tmp/build_*` location to be written instead, meaning VCS src paths need to be rewritten regardless.
 #
