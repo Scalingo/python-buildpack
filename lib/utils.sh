@@ -16,6 +16,15 @@ function utils::get_requirement_version() {
 	echo "${requirement_version}"
 }
 
+# Replaces any invisible unwanted characters (such as ASCII control codes) with the Unicode
+# replacement character, so they are visible in error messages. Also removes any carriage
+# return characters, to prevent them interfering with the rendering of error messages that
+# include the raw file contents.
+function utils::read_file_with_special_chars_substituted() {
+	local file="${1}"
+	sed --regexp-extended --expression 's/[^[:print:][:space:]]/�/g' --expression 's/\r$//' "${file}"
+}
+
 # Python bundles pip within its standard library, which we can use to install our chosen
 # pip version from PyPI, saving us from having to download the usual pip bootstrap script.
 function utils::bundled_pip_module_path() {
@@ -35,10 +44,10 @@ function utils::bundled_pip_module_path() {
 		echo "${bundled_pip_wheel}/pip"
 	else
 		output::error <<-EOF
-			Internal Error: Unable to locate the bundled copy of pip.
+			Internal Error: Unable to locate the Python stdlib's bundled pip.
 
-			The Python buildpack could not locate the copy of pip bundled
-			inside Python's 'ensurepip' module:
+			Couldn't find the pip wheel file bundled inside the Python
+			stdlib's 'ensurepip' module:
 
 			$(find "${bundled_wheels_dir}/" 2>&1 || find "${python_home}/" -type d 2>&1 || true)
 		EOF

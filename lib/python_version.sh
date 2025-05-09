@@ -52,7 +52,7 @@ function python_version::read_requested_python_version() {
 
 	local runtime_txt_path="${build_dir}/runtime.txt"
 	if [[ -f "${runtime_txt_path}" ]]; then
-		contents="$(cat "${runtime_txt_path}")"
+		contents="$(utils::read_file_with_special_chars_substituted "${runtime_txt_path}")"
 		version="$(python_version::parse_runtime_txt "${contents}")"
 		origin="runtime.txt"
 		return 0
@@ -60,7 +60,7 @@ function python_version::read_requested_python_version() {
 
 	local python_version_file_path="${build_dir}/.python-version"
 	if [[ -f "${python_version_file_path}" ]]; then
-		contents="$(cat "${python_version_file_path}")"
+		contents="$(utils::read_file_with_special_chars_substituted "${python_version_file_path}")"
 		version="$(python_version::parse_python_version_file "${contents}")"
 		origin=".python-version"
 		return 0
@@ -97,6 +97,8 @@ function python_version::parse_runtime_txt() {
 		local version="${BASH_REMATCH[1]}"
 		echo "${version}"
 	else
+		local instructions
+		instructions="$(python_version::python_version_file_instructions "runtime.txt" "${DEFAULT_PYTHON_MAJOR_VERSION}")"
 		output::error <<-EOF
 			Error: Invalid Python version in runtime.txt.
 
@@ -106,23 +108,13 @@ function python_version::parse_runtime_txt() {
 			The following file contents were found, which aren't valid:
 			${contents:0:100}
 
-			However, the runtime.txt file is deprecated since it has
-			been replaced by the .python-version file. As such, we
-			recommend that you switch to using a .python-version file
+			However, the runtime.txt file is deprecated since it has been
+			replaced by the more widely supported .python-version file.
+
+			As such, we recommend that you switch to using .python-version
 			instead of fixing your runtime.txt file.
 
-			Please delete your runtime.txt file and create a new file named:
-			.python-version
-
-			Make sure to include the '.' at the start of the filename.
-
-			In the new file, specify your app's Python version without
-			quotes or a 'python-' prefix. For example:
-			${DEFAULT_PYTHON_MAJOR_VERSION}
-
-			We strongly recommend that you use the major version form
-			instead of pinning to an exact version, since it will allow
-			your app to receive Python security updates.
+			${instructions}
 		EOF
 		meta_set "failure_reason" "runtime-txt::invalid-version"
 		meta_set "failure_detail" "${contents:0:50}"
@@ -160,19 +152,20 @@ function python_version::parse_python_version_file() {
 					${line}
 
 					However, the Python version must be specified as either:
-					1. The major version only: 3.X  (recommended)
-					2. An exact patch version: 3.X.Y
+					1. The major version only, for example: ${DEFAULT_PYTHON_MAJOR_VERSION} (recommended)
+					2. An exact patch version, for example: ${DEFAULT_PYTHON_MAJOR_VERSION}.999
 
-					Don't include quotes or a 'python-' prefix. To include
-					comments, add them on their own line, prefixed with '#'.
+					Don't include quotes, a 'python-' prefix or wildcards. Any
+					code comments must be on a separate line prefixed with '#'.
 
 					For example, to request the latest version of Python ${DEFAULT_PYTHON_MAJOR_VERSION},
-					update your .python-version file so it contains:
+					update your .python-version file so it contains exactly:
 					${DEFAULT_PYTHON_MAJOR_VERSION}
 
-					We strongly recommend that you use the major version form
-					instead of pinning to an exact version, since it will allow
-					your app to receive Python security updates.
+					We strongly recommend that you don't specify the Python patch
+					version number, since it will pin your app to an exact Python
+					version and so stop your app from receiving security updates
+					each time it builds.
 				EOF
 				meta_set "failure_reason" "python-version-file::invalid-version"
 				meta_set "failure_detail" "${line:0:50}"
@@ -185,10 +178,11 @@ function python_version::parse_python_version_file() {
 
 				No Python version was found in your .python-version file.
 
-				Update the file so that it contains a valid Python version.
+				Update the file so that it contains your app's major Python
+				version number. Don't include quotes or a 'python-' prefix.
 
 				For example, to request the latest version of Python ${DEFAULT_PYTHON_MAJOR_VERSION},
-				update your .python-version file so it contains:
+				update your .python-version file so it contains exactly:
 				${DEFAULT_PYTHON_MAJOR_VERSION}
 
 				If the file already contains a version, check the line doesn't
@@ -211,6 +205,10 @@ function python_version::parse_python_version_file() {
 				)
 
 				Update the file so it contains only one Python version.
+
+				For example, to request the latest version of Python ${DEFAULT_PYTHON_MAJOR_VERSION},
+				update your .python-version file so it contains exactly:
+				${DEFAULT_PYTHON_MAJOR_VERSION}
 
 				If you have added comments to the file, make sure that those
 				lines begin with a '#', so that they are ignored.
@@ -278,15 +276,18 @@ function python_version::read_pipenv_python_version() {
 			${version}
 
 			However, the Python version must be specified as either:
-			1. The major version only: 3.X  (recommended)
-			2. An exact patch version: 3.X.Y
+			1. The major version only, for example: ${DEFAULT_PYTHON_MAJOR_VERSION} (recommended)
+			2. An exact patch version, for example: ${DEFAULT_PYTHON_MAJOR_VERSION}.999
+
+			Wildcards aren't supported.
 
 			Please update your Pipfile to use a valid Python version and
 			then run 'pipenv lock' to regenerate Pipfile.lock.
 
-			We strongly recommend that you use the major version form
-			instead of pinning to an exact version, since it will allow
-			your app to receive Python security updates.
+			We strongly recommend that you don't specify the Python patch
+			version number, since it will pin your app to an exact Python
+			version and so stop your app from receiving security updates
+			each time it builds.
 
 			For more information, see:
 			https://pipenv.pypa.io/en/stable/specifiers.html#specifying-versions-of-python
@@ -313,6 +314,8 @@ function python_version::resolve_python_version() {
 
 	if ((major < 3 || (major == 3 && minor < OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION))); then
 		if [[ "${python_version_origin}" == "cached" ]]; then
+			local instructions
+			instructions="$(python_version::python_version_file_instructions "${python_version_origin}" "3.${OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION}")"
 			output::error <<-EOF
 				Error: The cached Python version has reached end-of-life.
 
@@ -328,12 +331,7 @@ function python_version::resolve_python_version() {
 				Please upgrade to at least Python 3.${OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION} by configuring an
 				explicit Python version for your app.
 
-				Create a .python-version file in the root directory of your
-				app, that contains a Python version like:
-				3.${NEWEST_SUPPORTED_PYTHON_3_MINOR_VERSION}
-
-				When creating this file make sure to include the '.' at the
-				start of the filename.
+				${instructions}
 			EOF
 		else
 			output::error <<-EOF
@@ -350,6 +348,9 @@ function python_version::resolve_python_version() {
 
 				For a list of the supported Python versions, see:
 				https://doc.scalingo.com/languages/python/start
+
+				If possible, we recommend upgrading all the way to Python ${DEFAULT_PYTHON_MAJOR_VERSION},
+				since it contains many performance and usability improvements.
 			EOF
 		fi
 		meta_set "failure_reason" "python-version::eol"
@@ -414,6 +415,102 @@ function python_version::resolve_python_version() {
 	esac
 }
 
+function python_version::warn_if_python_version_file_missing() {
+	local python_version_origin="${1}"
+	local python_major_version="${2}"
+
+	if [[ "${python_version_origin}" == ".python-version" ]]; then
+		return 0
+	fi
+
+	local instructions
+	instructions="$(python_version::python_version_file_instructions "${python_version_origin}" "${python_major_version}")"
+
+	case "${python_version_origin}" in
+		default | cached)
+			output::warning <<-EOF
+				Warning: No Python version was specified.
+
+				Your app doesn't specify a Python version and so the buildpack
+				picked a default version for you.
+
+				Relying on this default version isn't recommended, since it
+				can change over time and may not be consistent with your local
+				development environment, CI or other instances of your app.
+
+				Please configure an explicit Python version for your app.
+
+				${instructions}
+
+				If your app already has a .python-version file, check that it:
+
+				1. Is in the top level directory (not a subdirectory).
+				2. Is named exactly '.python-version' in all lowercase.
+				3. Isn't listed in '.gitignore' or '.slugignore'.
+				4. Has been added to the Git repository using 'git add --all'
+				   and then committed using 'git commit'.
+
+				In the future we will require the use of a .python-version
+				file and this warning will be made an error.
+			EOF
+			;;
+		runtime.txt)
+			output::warning <<-EOF
+				Warning: The runtime.txt file is deprecated.
+
+				The runtime.txt file is deprecated since it has been replaced
+				by the more widely supported .python-version file.
+
+				Please switch to using a .python-version file instead.
+
+				${instructions}
+
+				In the future support for runtime.txt will be removed and
+				this warning will be made an error.
+			EOF
+			;;
+		Pipfile.lock)
+			# Decide if we want to warn for this case.
+			;;
+		*) utils::abort_internal_error "Unhandled Python version origin: ${python_version_origin}" ;;
+	esac
+}
+
+function python_version::python_version_file_instructions() {
+	local python_version_origin="${1}"
+	local python_major_version="${2}"
+
+	if [[ "${python_version_origin}" == "runtime.txt" ]]; then
+		cat <<-EOF
+			Delete your runtime.txt file and create a new file in the
+			root directory of your app named:
+		EOF
+	else
+		cat <<-EOF
+			Create a new file in the root directory of your app named:
+		EOF
+	fi
+
+	cat <<-EOF
+		.python-version
+
+		Make sure to include the '.' character at the start of the
+		filename. Don't add a file extension such as '.txt'.
+
+		In the new file, specify your app's major Python version number
+		only. Don't include quotes or a 'python-' prefix.
+
+		For example, to request the latest version of Python ${python_major_version},
+		update your .python-version file so it contains exactly:
+		${python_major_version}
+
+		We strongly recommend that you don't specify the Python patch
+		version number, since it will pin your app to an exact Python
+		version and so stop your app from receiving security updates
+		each time it builds.
+	EOF
+}
+
 function python_version::warn_if_deprecated_major_version() {
 	local requested_major_version="${1}"
 	local version_origin="${2}"
@@ -461,7 +558,7 @@ function python_version::warn_if_patch_update_available() {
 
 			Update your ${python_version_origin} file to use the new version.
 
-			We strongly recommend that you do not pin your app to an
+			We strongly recommend that you don't pin your app to an
 			exact Python version such as ${python_full_version}, and instead only specify
 			the major Python version of ${python_major_version} in your ${python_version_origin} file.
 			This will allow your app to receive the latest available Python

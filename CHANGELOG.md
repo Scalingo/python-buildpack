@@ -3,6 +3,27 @@
 ## [Unreleased]
 
 
+## [v285] - 2025-05-08
+
+- Improved internal buildpack metrics handling of attributes that contain newline characters. ([#1792](https://github.com/heroku/heroku-buildpack-python/pull/1792))
+
+## [v284] - 2025-05-06
+
+- Fixed parsing of `runtime.txt` and `.python-version` files that contain CRLF characters. ([#1789](https://github.com/heroku/heroku-buildpack-python/pull/1789))
+
+## [v283] - 2025-05-06
+
+- Added a warning when an app doesn't specify a Python version and instead relies upon the default/cached version. ([#1787](https://github.com/heroku/heroku-buildpack-python/pull/1787))
+- Improved the instructions for migrating from `runtime.txt` to `.python-version`. ([#1783](https://github.com/heroku/heroku-buildpack-python/pull/1783))
+- Improved the error messages shown when `.python-version`, `runtime.txt` or `Pipfile.lock` contain an invalid Python version. ([#1783](https://github.com/heroku/heroku-buildpack-python/pull/1783) and [#1786](https://github.com/heroku/heroku-buildpack-python/pull/1786))
+- Improved the rendering of the error message shown when `.python-version` or `runtime.txt` contain stray invisible characters (such as ASCII control codes). ([#1783](https://github.com/heroku/heroku-buildpack-python/pull/1783))
+- Improved the upgrade instructions shown for EOL and unsupported Python versions. ([#1783](https://github.com/heroku/heroku-buildpack-python/pull/1783) and [#1786](https://github.com/heroku/heroku-buildpack-python/pull/1786))
+- Improved the error messages shown when no Python package manager files are found. ([#1787](https://github.com/heroku/heroku-buildpack-python/pull/1787))
+
+## [v282] - 2025-05-02
+
+- Removed support for Heroku-20. ([#1778](https://github.com/heroku/heroku-buildpack-python/pull/1778))
+
 ## [v281] - 2025-04-08
 
 - The Python 3.13 version alias now resolves to Python 3.13.3. ([#1775](https://github.com/heroku/heroku-buildpack-python/pull/1775))
@@ -1193,7 +1214,11 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v281...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v285...main
+[v285]: https://github.com/heroku/heroku-buildpack-python/compare/v284...v285
+[v284]: https://github.com/heroku/heroku-buildpack-python/compare/v283...v284
+[v283]: https://github.com/heroku/heroku-buildpack-python/compare/v282...v283
+[v282]: https://github.com/heroku/heroku-buildpack-python/compare/v281...v282
 [v281]: https://github.com/heroku/heroku-buildpack-python/compare/v280...v281
 [v280]: https://github.com/heroku/heroku-buildpack-python/compare/v279...v280
 [v279]: https://github.com/heroku/heroku-buildpack-python/compare/v278...v279
