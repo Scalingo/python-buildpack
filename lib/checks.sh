@@ -4,7 +4,7 @@ function checks::ensure_supported_stack() {
 	local stack="${1}"
 
 	case "${stack}" in
-		heroku-20 | heroku-22 | heroku-24 | scalingo-20 | scalingo-22 | scalingo-24)
+		heroku-22 | heroku-24 | scalingo-20 | scalingo-22 | scalingo-24)
 			return 0
 			;;
 		cedar* | heroku-16 | heroku-18 | scalingo-14 | scalingo-18)
@@ -24,9 +24,9 @@ function checks::ensure_supported_stack() {
 			;;
 		*)
 			output::error <<-EOF
-				Error: The '${stack}' stack is not recognised.
+				Error: The '${stack}' stack isn't recognised.
 
-				This buildpack does not recognise or support the '${stack}' stack.
+				This buildpack doesn't recognise or support the '${stack}' stack.
 
 				If '${stack}' is a valid stack, make sure that you are using the latest
 				version of this buildpack and have not pinned to an older release.
@@ -54,7 +54,7 @@ function checks::warn_if_duplicate_python_buildpack() {
 			from a buildpack run earlier in the build.
 
 			This normally means there are duplicate Python buildpacks set
-			on your app, which is not supported, can cause errors and
+			on your app, which isn't supported, can cause errors and
 			slow down builds.
 
 			Check the buildpacks set on your app and remove any duplicate
@@ -94,13 +94,13 @@ function checks::warn_if_existing_python_dir_present() {
 			$(find .scalingo/python/ -maxdepth 2 || true)
 
 			Writing to internal locations used by the Python buildpack
-			is not supported and can cause unexpected errors.
+			isn't supported and can cause unexpected errors.
 
 			If you have committed a '.scalingo/python/' directory to your
 			Git repo, you must delete it or use a different location.
 
 			Otherwise, check that an earlier buildpack or 'bin/pre_compile'
-			hook has not created this directory.
+			hook hasn't created this directory.
 
 			If you have a use-case that requires writing to this location,
 			please comment on:
