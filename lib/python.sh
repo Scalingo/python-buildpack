@@ -81,7 +81,7 @@ function python::install() {
 			#    decompression/extraction as separate steps), so can't write to stdout.
 			# 2. We want to display the original stderr to the user, so can't write to stderr.
 			# 3. Curl's `--write-out` feature only supports outputting to a file (as opposed to
-			#    stdout/stderr) as of curl v8.3.0, which is newer than the curl on Heroku-20/22.
+			#    stdout/stderr) as of curl v8.3.0, which is newer than the curl on Heroku-22.
 			# This has an integration test run against all stacks, which will mean we will know
 			# if future versions of curl change the error message string.
 			#
@@ -102,7 +102,7 @@ function python::install() {
 					If it has, make sure that you are using the latest version
 					of this buildpack, and haven't pinned to an older release.
 
-					We also strongly recommend that you do not pin your app to an
+					We also strongly recommend that you don't pin your app to an
 					exact Python version such as ${python_full_version}, and instead only specify
 					the major Python version of ${python_major_version} in your ${python_version_origin} file.
 					This will allow your app to receive the latest available Python

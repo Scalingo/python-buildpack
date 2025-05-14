@@ -27,7 +27,7 @@ function package_manager::determine_package_manager() {
 			however, in the future this warning will become an error.
 
 			Run 'pipenv lock' locally to generate the lockfile, and make sure
-			that 'Pipfile.lock' is not listed in '.gitignore' or '.slugignore'.
+			that 'Pipfile.lock' isn't listed in '.gitignore' or '.slugignore'.
 		EOF
 		package_managers_found+=(pipenv)
 		package_managers_found_display_text+=("Pipfile (Pipenv)")
@@ -87,6 +87,8 @@ function package_manager::determine_package_manager() {
 				1. Is in the top level directory (not a subdirectory).
 				2. Has the correct spelling (the filenames are case-sensitive).
 				3. Isn't listed in '.gitignore' or '.slugignore'.
+				4. Has been added to the Git repository using 'git add --all'
+				   and then committed using 'git commit'.
 
 				Otherwise, add a package manager file to your app. If your app has
 				no dependencies, then create an empty 'requirements.txt' file.
