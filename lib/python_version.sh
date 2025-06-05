@@ -432,8 +432,9 @@ function python_version::warn_or_error_if_python_version_file_missing() {
 				output::error <<-EOF
 					Error: No Python version was specified.
 
-					When using the package manager uv on Heroku, you must specify
-					your app's Python version with a .python-version file.
+					When using the package manager uv on Scalingo, you must
+					specify your app's Python version with a .python-version
+					file.
 
 					To add a .python-version file:
 
@@ -484,9 +485,9 @@ function python_version::warn_or_error_if_python_version_file_missing() {
 				output::error <<-EOF
 					Error: The runtime.txt file isn't supported when using uv.
 
-					When using the package manager uv on Heroku, you must specify
-					your app's Python version with a .python-version file and not
-					a runtime.txt file.
+					When using the package manager uv on Scalingo, you must
+					specify your app's Python version with a .python-version
+					file and not a runtime.txt file.
 
 					To switch to a .python-version file:
 
