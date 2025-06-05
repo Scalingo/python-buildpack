@@ -3,6 +3,25 @@
 ## [Unreleased]
 
 
+## [v288] - 2025-06-03
+
+- The Python 3.13 version alias now resolves to Python 3.13.4. ([#1810](https://github.com/heroku/heroku-buildpack-python/pull/1810))
+- The Python 3.12 version alias now resolves to Python 3.12.11. ([#1810](https://github.com/heroku/heroku-buildpack-python/pull/1810))
+- The Python 3.11 version alias now resolves to Python 3.11.13. ([#1810](https://github.com/heroku/heroku-buildpack-python/pull/1810))
+- The Python 3.10 version alias now resolves to Python 3.10.18. ([#1810](https://github.com/heroku/heroku-buildpack-python/pull/1810))
+- The Python 3.9 version alias now resolves to Python 3.9.23. ([#1810](https://github.com/heroku/heroku-buildpack-python/pull/1810))
+- Updated uv from 0.7.6 to 0.7.10. ([#1811](https://github.com/heroku/heroku-buildpack-python/pull/1811))
+
+## [v287] - 2025-05-20
+
+- Updated pip from 25.0.1 to 25.1.1. ([#1795](https://github.com/heroku/heroku-buildpack-python/pull/1795))
+- Updated Poetry from 2.1.2 to 2.1.3. ([#1797](https://github.com/heroku/heroku-buildpack-python/pull/1797))
+- Updated uv from 0.7.3 to 0.7.6. ([#1800](https://github.com/heroku/heroku-buildpack-python/pull/1800) and [#1803](https://github.com/heroku/heroku-buildpack-python/pull/1803))
+
+## [v286] - 2025-05-13
+
+- Added support for the package manager uv. ([#1791](https://github.com/heroku/heroku-buildpack-python/pull/1791))
+
 ## [v285] - 2025-05-08
 
 - Improved internal buildpack metrics handling of attributes that contain newline characters. ([#1792](https://github.com/heroku/heroku-buildpack-python/pull/1792))
@@ -1214,7 +1233,10 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v285...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v288...main
+[v288]: https://github.com/heroku/heroku-buildpack-python/compare/v287...v288
+[v287]: https://github.com/heroku/heroku-buildpack-python/compare/v286...v287
+[v286]: https://github.com/heroku/heroku-buildpack-python/compare/v285...v286
 [v285]: https://github.com/heroku/heroku-buildpack-python/compare/v284...v285
 [v284]: https://github.com/heroku/heroku-buildpack-python/compare/v283...v284
 [v283]: https://github.com/heroku/heroku-buildpack-python/compare/v282...v283

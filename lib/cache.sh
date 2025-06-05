@@ -103,7 +103,7 @@ function cache::restore() {
 					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version} to ${PIPENV_VERSION}")
 				fi
 				# TODO: Remove this next time the Pipenv version is bumped (since it will trigger cache invalidation of its own)
-				if [[ -d "${cache_dir}/.heroku/src" ]]; then
+				if [[ -d "${cache_dir}/.scalingo/src" ]]; then
 					cache_invalidation_reasons+=("The editable VCS repository location has changed (and Pipenv doesn't handle this correctly)")
 				fi
 				;;
@@ -113,6 +113,14 @@ function cache::restore() {
 				# Poetry support was added after the metadata store, so we'll always have the version here.
 				if [[ "${cached_poetry_version}" != "${POETRY_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The Poetry version has changed from ${cached_poetry_version:-"unknown"} to ${POETRY_VERSION}")
+				fi
+				;;
+			uv)
+				local cached_uv_version
+				cached_uv_version="$(meta_prev_get "uv_version")"
+				# uv support was added after the metadata store, so we'll always have the version here.
+				if [[ "${cached_uv_version}" != "${UV_VERSION:?}" ]]; then
+					cache_invalidation_reasons+=("The uv version has changed from ${cached_uv_version:-"unknown"} to ${UV_VERSION}")
 				fi
 				;;
 			*)
@@ -132,6 +140,7 @@ function cache::restore() {
 			"${cache_dir}/.scalingo/python" \
 			"${cache_dir}/.scalingo/python-poetry" \
 			"${cache_dir}/.scalingo/python-stack" \
+			"${cache_dir}/.scalingo/python-uv" \
 			"${cache_dir}/.scalingo/python-version" \
 			"${cache_dir}/.scalingo/requirements.txt"
 
