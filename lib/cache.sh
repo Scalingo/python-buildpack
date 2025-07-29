@@ -33,7 +33,7 @@ function cache::restore() {
 	local python_full_version="${5}"
 	local package_manager="${6}"
 
-	if [[ ! -e "${cache_dir}/.scalingo/python" ]]; then
+	if [[ ! -d "${cache_dir}/.scalingo/python" ]]; then
 		meta_set "cache_status" "empty"
 		return 0
 	fi
@@ -102,9 +102,14 @@ function cache::restore() {
 				elif [[ "${cached_pipenv_version}" != "${PIPENV_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version} to ${PIPENV_VERSION}")
 				fi
-				# TODO: Remove this next time the Pipenv version is bumped (since it will trigger cache invalidation of its own)
-				if [[ -d "${cache_dir}/.scalingo/src" ]]; then
-					cache_invalidation_reasons+=("The editable VCS repository location has changed (and Pipenv doesn't handle this correctly)")
+				# `pipenv {install,sync}` by design don't actually uninstall packages on their own (!!):
+				# and we can't use `pipenv clean` since it isn't compatible with `--system`.
+				# https://github.com/pypa/pipenv/issues/3365
+				# We have to explicitly check for the presence of the Pipfile.lock.sha256 file,
+				# since we only started writing it to the build cache as of buildpack v292+.
+				local pipfile_lock_checksum_file="${cache_dir}/.scalingo/python/Pipfile.lock.sha256"
+				if [[ -f "${pipfile_lock_checksum_file}" ]] && ! sha256sum --check --strict --status "${pipfile_lock_checksum_file}"; then
+					cache_invalidation_reasons+=("The contents of Pipfile.lock changed")
 				fi
 				;;
 			poetry)
@@ -148,13 +153,10 @@ function cache::restore() {
 	else
 		output::step "Restoring cache"
 		mkdir -p "${build_dir}/.scalingo"
-
-		# NB: For now this has to handle files already existing in build_dir since some apps accidentally
-		# run the Python buildpack twice. TODO: Refactor this once duplicate buildpacks become an error.
-		# TODO: Investigate why errors are ignored and ideally stop doing so.
-		# TODO: Compare the performance of moving the directory vs copying files.
-		cp -R "${cache_dir}/.scalingo/python" "${build_dir}/.scalingo/" &>/dev/null || true
-
+		# Moving the files directly in place is much faster than copying when both the cache and
+		# build directory are on the same filesystem mount. The Python directory is guaranteed
+		# to not already exist thanks to the earlier `checks::existing_python_dir_present()`.
+		mv "${cache_dir}/.scalingo/python" "${build_dir}/.scalingo/"
 		meta_set "cache_status" "reused"
 	fi
 
@@ -178,10 +180,17 @@ function cache::save() {
 	local cache_save_start_time
 	cache_save_start_time=$(nowms)
 
+	output::step "Saving cache"
+
 	mkdir -p "${cache_dir}/.scalingo"
 
 	rm -rf "${cache_dir}/.scalingo/python"
-	cp -R "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
+	# In theory we should be able to use `--reflink=auto` here for improved performance, however,
+	# initial benchmarking showed it to be slower with the file system type / mounts used by the
+	# Heroku build system for some reason. (Copying was faster using `--link`, however, that fails
+	# when copying cross-mount such as for Heroku CI and build-in-app-dir, plus hardlinks could
+	# result in unintended cache mutation if later buildpacks add/remove packages etc.)
+	cp --recursive "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
 
 	# Metadata used by subsequent builds to determine whether the cache can be reused.
 	# These are written/consumed via separate files and not the metadata store for compatibility
@@ -194,7 +203,12 @@ function cache::save() {
 	# TODO: Simplify this once multiple package manager files being found is turned into an
 	# error and the setup.py fallback feature is removed.
 	if [[ "${package_manager}" == "pip" && -f "${build_dir}/requirements.txt" ]]; then
+		# TODO: Switch this to using sha256sum like the Pipenv implementation.
 		cp "${build_dir}/requirements.txt" "${cache_dir}/.scalingo/"
+	elif [[ "${package_manager}" == "pipenv" ]]; then
+		# This must use a relative path for the lockfile, since the output file will contain
+		# the path specified, and the build directory path changes every build.
+		sha256sum Pipfile.lock >"${cache_dir}/.scalingo/python/Pipfile.lock.sha256"
 	fi
 
 	meta_time "cache_save_duration" "${cache_save_start_time}"

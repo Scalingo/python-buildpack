@@ -15,7 +15,7 @@ package maintainers (common).
 
 ## Application Requirements
 
-A `requirements.txt`, `Pipfile`, `poetry.lock`, or `uv.lock` file must be
+A `requirements.txt`, `Pipfile.lock`, `poetry.lock`, or `uv.lock` file must be
 present in the root (top-level) directory of your app's source code.
 
 When using the package manager [uv](https://docs.astral.sh/uv/) a

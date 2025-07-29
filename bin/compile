@@ -41,7 +41,7 @@ meta_init "${CACHE_DIR}" "python"
 meta_setup
 
 checks::ensure_supported_stack "${STACK:?Required env var STACK is not set}"
-checks::warn_if_duplicate_python_buildpack "${BUILD_DIR}"
+checks::duplicate_python_buildpack "${BUILD_DIR}"
 
 # Prepend proper path for old-school virtualenv hackery.
 # This may not be necessary.
@@ -100,8 +100,8 @@ cd "$BUILD_DIR"
 hooks::run_hook "pre_compile"
 
 # This check must be after the pre_compile hook, so that we can check not only the original
-# app source, but also that the hook hasn't written to '.scalingo/python/' either.
-checks::warn_if_existing_python_dir_present "${BUILD_DIR}"
+# app source, but also that the hook hasn't written to '.heroku/python/' either.
+checks::existing_python_dir_present "${BUILD_DIR}"
 
 package_manager="$(package_manager::determine_package_manager "${BUILD_DIR}")"
 meta_set "package_manager" "${package_manager}"
@@ -113,8 +113,6 @@ cached_python_full_version="$(cache::cached_python_full_version "${CACHE_DIR}")"
 python_version::read_requested_python_version "${BUILD_DIR}" "${package_manager}" "${cached_python_full_version}" requested_python_version python_version_origin
 meta_set "python_version_requested" "${requested_python_version}"
 meta_set "python_version_origin" "${python_version_origin}"
-# TODO: Remove this once the old Honeycomb events that don't have `python_version_origin` have aged out.
-meta_set "python_version_reason" "${python_version_origin}"
 
 case "${python_version_origin}" in
 	default)
@@ -175,9 +173,7 @@ case "${package_manager}" in
 		pip::install_pip_setuptools_wheel "${python_home}" "${python_major_version}"
 		;;
 	pipenv)
-		# TODO: Stop installing pip when using Pipenv.
-		pip::install_pip_setuptools_wheel "${python_home}" "${python_major_version}"
-		pipenv::install_pipenv
+		pipenv::install_pipenv "${python_home}" "${python_major_version}" "${EXPORT_PATH}" "${PROFILE_PATH}"
 		;;
 	poetry)
 		poetry::install_poetry "${python_home}" "${python_major_version}" "${CACHE_DIR}" "${EXPORT_PATH}"
