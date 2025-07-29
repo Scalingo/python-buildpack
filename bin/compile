@@ -100,7 +100,7 @@ cd "$BUILD_DIR"
 hooks::run_hook "pre_compile"
 
 # This check must be after the pre_compile hook, so that we can check not only the original
-# app source, but also that the hook hasn't written to '.heroku/python/' either.
+# app source, but also that the hook hasn't written to '.scalingo/python/' either.
 checks::existing_python_dir_present "${BUILD_DIR}"
 
 package_manager="$(package_manager::determine_package_manager "${BUILD_DIR}")"

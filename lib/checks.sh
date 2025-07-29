@@ -73,7 +73,7 @@ function checks::existing_python_dir_present() {
 	# We use `-e` here to catch the case where `python` is a file rather than a directory.
 	if [[ -e "${build_dir}/.scalingo/python" ]]; then
 		output::error <<-EOF
-			Error: Existing '.heroku/python/' directory found.
+			Error: Existing '.scalingo/python/' directory found.
 
 			Your app's source code contains an existing directory named
 			'.scalingo/python/', which is where the Python buildpack needs

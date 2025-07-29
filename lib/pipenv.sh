@@ -15,7 +15,7 @@ function pipenv::install_pipenv() {
 	# Ideally we would only make Pipenv available during the build to reduce slug size, however,
 	# the buildpack has historically not done that and so some apps are relying on it at run-time
 	# (for example via `pipenv run` commands in their Procfile). As such, we have to store it in
-	# the build directory, but must do so via the symlinked `/app/.heroku/python` path so the
+	# the build directory, but must do so via the symlinked `/app/.scalingo/python` path so the
 	# venv doesn't break when the build directory is relocated to /app at run-time.
 	local pipenv_root="${python_home}/pipenv"
 
