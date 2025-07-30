@@ -108,7 +108,7 @@ function pip::install_dependencies() {
 
 	# TODO: Remove --disable-pip-version-check in favour of exporting PIP_DISABLE_PIP_VERSION_CHECK.
 	# The sed usage is to reduce the verbosity of output lines like:
-	# "Requirement already satisfied: typing-extensions==4.12.2 in /app/.heroku/python/lib/python3.13/site-packages (from -r requirements.txt (line 5)) (4.12.2)"
+	# "Requirement already satisfied: typing-extensions==4.12.2 in /app/.scalingo/python/lib/python3.13/site-packages (from -r requirements.txt (line 5)) (4.12.2)"
 	# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
 	if ! {
 		"${pip_install_command[@]}" \

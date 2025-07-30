@@ -38,8 +38,7 @@ function checks::ensure_supported_stack() {
 	esac
 }
 
-# TODO: Turn this into an error in January 2025.
-function checks::warn_if_duplicate_python_buildpack() {
+function checks::duplicate_python_buildpack() {
 	local build_dir="${1}"
 
 	# The check for the `PYTHONHOME` env var prevents this warning triggering in the case
@@ -47,8 +46,8 @@ function checks::warn_if_duplicate_python_buildpack() {
 	# (The env var can only have come from the `export` file of an earlier buildpack,
 	# since app provided config vars haven't been exported to the environment here.)
 	if [[ -f "${build_dir}/.scalingo/python/bin/python" && -v PYTHONHOME ]]; then
-		output::warning <<-EOF
-			Warning: The Python buildpack has already been run this build.
+		output::error <<-EOF
+			Error: The Python buildpack has already been run this build.
 
 			An existing Python installation was found in the build directory
 			from a buildpack run earlier in the build.
@@ -60,32 +59,21 @@ function checks::warn_if_duplicate_python_buildpack() {
 			Check the buildpacks set on your app and remove any duplicate
 			Python buildpack entries.
 
-			If you have a use-case that requires duplicate buildpacks,
-			please comment on:
-			https://github.com/heroku/heroku-buildpack-python/issues/1704
-
-			In January 2025 this warning will be made an error.
+			Note: This error replaces the deprecation warning which was
+			displayed in build logs starting 13th December 2024.
 		EOF
-		meta_set "duplicate_python_buildpack" "true"
-		# shellcheck disable=SC2034 # This is used below until we make this check an error.
-		DUPLICATE_PYTHON_BUILDPACK=1
+		meta_set "failure_reason" "checks::duplicate-python-buildpack"
+		exit 1
 	fi
 }
 
-# TODO: Turn this into an error in January 2025.
-function checks::warn_if_existing_python_dir_present() {
+function checks::existing_python_dir_present() {
 	local build_dir="${1}"
-
-	# Avoid warning twice in the case of duplicate buildpacks.
-	# TODO: Remove this once `warn_if_duplicate_python_buildpack` becomes an error.
-	if [[ -v DUPLICATE_PYTHON_BUILDPACK ]]; then
-		return 0
-	fi
 
 	# We use `-e` here to catch the case where `python` is a file rather than a directory.
 	if [[ -e "${build_dir}/.scalingo/python" ]]; then
-		output::warning <<-EOF
-			Warning: Existing '.scalingo/python/' directory found.
+		output::error <<-EOF
+			Error: Existing '.scalingo/python/' directory found.
 
 			Your app's source code contains an existing directory named
 			'.scalingo/python/', which is where the Python buildpack needs
@@ -102,12 +90,10 @@ function checks::warn_if_existing_python_dir_present() {
 			Otherwise, check that an earlier buildpack or 'bin/pre_compile'
 			hook hasn't created this directory.
 
-			If you have a use-case that requires writing to this location,
-			please comment on:
-			https://github.com/heroku/heroku-buildpack-python/issues/1704
-
-			In January 2025 this warning will be made an error.
+			Note: This error replaces the deprecation warning which was
+			displayed in build logs starting 13th December 2024.
 		EOF
-		meta_set "existing_python_dir" "true"
+		meta_set "failure_reason" "checks::existing-python-dir"
+		exit 1
 	fi
 }

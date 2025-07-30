@@ -3,6 +3,29 @@
 ## [Unreleased]
 
 
+## [v294] - 2025-07-28
+
+- Improved performance of Python build cache restoration. ([#1845](https://github.com/heroku/heroku-buildpack-python/pull/1845))
+- Added a build log message for the build cache saving step. ([#1844](https://github.com/heroku/heroku-buildpack-python/pull/1844))
+
+## [v293] - 2025-07-23
+
+- Work around a Pipenv bug when using `--system`, that causes packages to not be installed correctly if they are also a dependency of Pipenv (such as `certifi` ). ([#1842](https://github.com/heroku/heroku-buildpack-python/pull/1842))
+
+## [v292] - 2025-07-23
+
+- Updated Pipenv from 2024.0.1 to 2025.0.4. ([#1840](https://github.com/heroku/heroku-buildpack-python/pull/1840))
+- Fixed the way Pipenv is installed, so that it and its dependencies are installed into a separate virtual environment rather than same environment as the app. If your app inadvertently depended on Pipenv's internal dependencies, you will need to add those dependencies explicitly to your `Pipfile`. ([#1840](https://github.com/heroku/heroku-buildpack-python/pull/1840))
+- Stopped installing pip when Pipenv is the chosen package manager. ([#1840](https://github.com/heroku/heroku-buildpack-python/pull/1840))
+- The build cache is now cleared when using Pipenv if the contents of `Pipfile.lock` has changed since the last build. This is required to work around Pipenv not uninstalling packages when they are removed from the lockfile. ([#1840](https://github.com/heroku/heroku-buildpack-python/pull/1840))
+- The build now errors when using Pipenv without its lockfile (`Pipfile.lock`). This replaces the warning displayed since November 2024. ([#1833](https://github.com/heroku/heroku-buildpack-python/pull/1833))
+
+## [v291] - 2025-07-10
+
+- Updated uv from 0.7.13 to 0.7.20. ([#1827](https://github.com/heroku/heroku-buildpack-python/pull/1827) and [#1829](https://github.com/heroku/heroku-buildpack-python/pull/1829))
+- The build now errors if the Python buildpack has been run multiple times in the same build. This replaces the warning displayed since December 2024. ([#1830](https://github.com/heroku/heroku-buildpack-python/pull/1830))
+- The build now errors if an existing `.heroku/python/` directory is found in the app source. This replaces the warning displayed since December 2024. ([#1830](https://github.com/heroku/heroku-buildpack-python/pull/1830))
+
 ## [v290] - 2025-06-17
 
 - Updated uv from 0.7.10 to 0.7.13. ([#1819](https://github.com/heroku/heroku-buildpack-python/pull/1819))
@@ -111,8 +134,8 @@
 
 ## [v272] - 2024-12-13
 
-- Added a warning if the Python buildpack has been run multiple times in the same build. In January 2025 this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
-- Added a warning if an existing `.heroku/python/` directory is found in the app source. In January 2025 this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
+- Added a warning if the Python buildpack has been run multiple times in the same build. In the future this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
+- Added a warning if an existing `.heroku/python/` directory is found in the app source. In the future this warning will be made an error. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
 - Improved the error message shown if the buildpack is used on an unsupported stack. ([#1724](https://github.com/heroku/heroku-buildpack-python/pull/1724))
 - Fixed Dev Center links to reflect recent article URL changes. ([#1723](https://github.com/heroku/heroku-buildpack-python/pull/1723))
 - Added metrics for the existence of a uv lockfile. ([#1725](https://github.com/heroku/heroku-buildpack-python/pull/1725))
@@ -1241,7 +1264,11 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v290...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v294...main
+[v294]: https://github.com/heroku/heroku-buildpack-python/compare/v293...v294
+[v293]: https://github.com/heroku/heroku-buildpack-python/compare/v292...v293
+[v292]: https://github.com/heroku/heroku-buildpack-python/compare/v291...v292
+[v291]: https://github.com/heroku/heroku-buildpack-python/compare/v290...v291
 [v290]: https://github.com/heroku/heroku-buildpack-python/compare/v289...v290
 [v289]: https://github.com/heroku/heroku-buildpack-python/compare/v288...v289
 [v288]: https://github.com/heroku/heroku-buildpack-python/compare/v287...v288
