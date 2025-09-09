@@ -9,15 +9,12 @@
 #
 # This script is invoked by [`bin/compile`](/).
 # This script is run in a subshell via sub_env so doesn't inherit the options/vars/utils from `bin/compile`.
-# TODO: Stop running this script in a subshell.
+# TODO: Migrate this script to functions under `lib/` and stop running the entire script in a subshell.
 set -euo pipefail
 BUILDPACK_DIR=$(cd "$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")" && pwd)
 source "${BUILDPACK_DIR}/bin/utils"
+source "${BUILDPACK_DIR}/lib/build_data.sh"
 source "${BUILDPACK_DIR}/lib/output.sh"
-
-# Required for `meta_set`.
-source "${BUILDPACK_DIR}/lib/metadata.sh"
-meta_init "${CACHE_DIR:?}" "python"
 
 # These are required by `set_env`.
 PROFILE_PATH="${BUILD_DIR:?}/.profile.d/python.sh"
@@ -31,14 +28,15 @@ if is_module_available 'nltk'; then
 	nltk_packages_definition="${BUILD_DIR}/nltk.txt"
 
 	if [[ -f "${nltk_packages_definition}" ]]; then
-		meta_set "nltk_downloader" "enabled"
+		build_data::set_string "nltk_downloader" "enabled"
 
 		readarray -t nltk_packages <"${nltk_packages_definition}"
 		output::step "Downloading NLTK packages: ${nltk_packages[*]}"
 
 		nltk_data_dir="/app/.scalingo/python/nltk_data"
 
-		if ! python -m nltk.downloader -d "${nltk_data_dir}" "${nltk_packages[@]}" |& output::indent; then
+		# TODO: Does this even need user-provided env vars, or can we remove the sub_env usage here?
+		if ! sub_env python -m nltk.downloader -d "${nltk_data_dir}" "${nltk_packages[@]}" |& output::indent; then
 			output::error <<-EOF
 				Error: Unable to download NLTK data.
 
@@ -47,13 +45,13 @@ if is_module_available 'nltk'; then
 
 				See the log output above for more information.
 			EOF
-			meta_set "failure_reason" "nltk-downloader"
+			build_data::set_string "failure_reason" "nltk-downloader"
 			exit 1
 		fi
 
 		set_env NLTK_DATA "${nltk_data_dir}"
 	else
-		meta_set "nltk_downloader" "skipped-no-nltk-file"
+		build_data::set_string "nltk_downloader" "skipped-no-nltk-file"
 		echo "       'nltk.txt' not found, not downloading any corpora"
 	fi
 fi

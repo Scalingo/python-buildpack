@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# shellcheck disable=SC2250 # TODO: Use braces around variable references even when not strictly required.
 
 # Django Collectstatic runner. If you have Django installed, collectstatic will
 # automatically be executed as part of the build process. If collectstatic
@@ -11,16 +10,20 @@
 #   - $DISABLE_COLLECTSTATIC: disables this functionality.
 #   - $DEBUG_COLLECTSTATIC: upon failure, print out environment variables.
 
-# This script is run in a subshell via sub_env so doesn't inherit the options/vars/utils from `bin/compile`.
-# TODO: Stop running this script in a subshell.
+# This script is run in a subshell so doesn't inherit the options/vars/utils from `bin/compile`.
+# TODO: Migrate this script to functions under `lib/` and stop running the entire script in a subshell,
+# and instead only the parts that need the user-provided config vars loaded.
 set -euo pipefail
 BUILDPACK_DIR=$(cd "$(dirname "$(dirname "$(dirname "${BASH_SOURCE[0]}")")")" && pwd)
 source "${BUILDPACK_DIR}/bin/utils"
+source "${BUILDPACK_DIR}/lib/build_data.sh"
 source "${BUILDPACK_DIR}/lib/output.sh"
 
-# Required for `meta_set`.
-source "${BUILDPACK_DIR}/lib/metadata.sh"
-meta_init "${CACHE_DIR:?}" "python"
+# This must be after the imports above, to prevent user-provided config vars from overwriting
+# env vars used by the buildpack such as `CACHE_DIR`:
+# https://github.com/heroku/heroku-buildpack-python/issues/972
+# TODO: Reduce the scope of this even further, as part of refactoring this file.
+export_env "${ENV_DIR}"
 
 if [[ -f .scalingo/collectstatic_disabled ]]; then
 	output::step "Skipping Django collectstatic since the file '.scalingo/collectstatic_disabled' exists."
@@ -29,13 +32,13 @@ if [[ -f .scalingo/collectstatic_disabled ]]; then
 
 		Please remove the file and set the env var DISABLE_COLLECTSTATIC=1 instead.
 	EOF
-	meta_set "django_collectstatic" "disabled-file"
+	build_data::set_string "django_collectstatic" "disabled-file"
 	exit 0
 fi
 
 if [[ "${DISABLE_COLLECTSTATIC:-0}" != "0" ]]; then
 	output::step "Skipping Django collectstatic since the env var DISABLE_COLLECTSTATIC is set."
-	meta_set "django_collectstatic" "disabled-env-var"
+	build_data::set_string "django_collectstatic" "disabled-env-var"
 	exit 0
 fi
 
@@ -51,20 +54,20 @@ MANAGE_FILE=${MANAGE_FILE:-fakepath}
 
 if [[ ! -f "${MANAGE_FILE}" ]]; then
 	output::step "Skipping Django collectstatic since no manage.py file found."
-	meta_set "django_collectstatic" "skipped-no-manage-py"
+	build_data::set_string "django_collectstatic" "skipped-no-manage-py"
 	exit 0
 fi
 
-meta_set "django_collectstatic" "enabled"
+build_data::set_string "django_collectstatic" "enabled"
 
-output::step "$ python $MANAGE_FILE collectstatic --noinput"
+output::step "$ python ${MANAGE_FILE} collectstatic --noinput"
 
-PYTHONPATH=${PYTHONPATH:-.}
+PYTHONPATH="${PYTHONPATH:-.}"
 export PYTHONPATH
 COLLECTSTATIC_LOG=$(mktemp)
 
 set +e
-python "$MANAGE_FILE" collectstatic --noinput --traceback 2>&1 | tee "$COLLECTSTATIC_LOG" | sed --unbuffered '/^Post-processed/d;/^Copying/d;/^$/d' | output::indent
+python "${MANAGE_FILE}" collectstatic --noinput --traceback 2>&1 | tee "${COLLECTSTATIC_LOG}" | sed --unbuffered '/^Post-processed/d;/^Copying/d;/^$/d' | output::indent
 COLLECTSTATIC_STATUS="${PIPESTATUS[0]}"
 set -e
 
@@ -75,16 +78,16 @@ if [[ "${COLLECTSTATIC_STATUS}" == 0 ]]; then
 fi
 
 # Display a warning if collectstatic failed.
-if grep -q 'SyntaxError' "$COLLECTSTATIC_LOG"; then
-	meta_set "failure_reason" "collectstatic-syntax-error"
-elif grep -q 'ImproperlyConfigured' "$COLLECTSTATIC_LOG"; then
-	meta_set "failure_reason" "collectstatic-improper-configuration"
-elif grep -q 'The CSS file' "$COLLECTSTATIC_LOG"; then
-	meta_set "failure_reason" "collectstatic-fancy-references"
-elif grep -q 'OSError' "$COLLECTSTATIC_LOG"; then
-	meta_set "failure_reason" "collectstatic-missing-file"
+if grep -q 'SyntaxError' "${COLLECTSTATIC_LOG}"; then
+	build_data::set_string "failure_reason" "collectstatic-syntax-error"
+elif grep -q 'ImproperlyConfigured' "${COLLECTSTATIC_LOG}"; then
+	build_data::set_string "failure_reason" "collectstatic-improper-configuration"
+elif grep -q 'The CSS file' "${COLLECTSTATIC_LOG}"; then
+	build_data::set_string "failure_reason" "collectstatic-fancy-references"
+elif grep -q 'OSError' "${COLLECTSTATIC_LOG}"; then
+	build_data::set_string "failure_reason" "collectstatic-missing-file"
 else
-	meta_set "failure_reason" "collectstatic-other"
+	build_data::set_string "failure_reason" "collectstatic-other"
 fi
 
 output::error <<-EOF
@@ -108,6 +111,7 @@ if [[ "${DEBUG_COLLECTSTATIC:-0}" == "1" ]]; then
 	echo
 	echo "****** Collectstatic environment variables:"
 	echo
+	# TODO: Sort the displayed env vars to make the order deterministic.
 	env | output::indent
 fi
 

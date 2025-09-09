@@ -18,8 +18,8 @@ function checks::ensure_supported_stack() {
 
 				Upgrade to a newer stack to continue using this buildpack.
 			EOF
-			meta_set "failure_reason" "stack::eol"
-			meta_set "failure_detail" "${stack}"
+			build_data::set_string "failure_reason" "stack::eol"
+			build_data::set_string "failure_detail" "${stack}"
 			exit 1
 			;;
 		*)
@@ -31,8 +31,8 @@ function checks::ensure_supported_stack() {
 				If '${stack}' is a valid stack, make sure that you are using the latest
 				version of this buildpack and have not pinned to an older release.
 			EOF
-			meta_set "failure_reason" "stack::unknown"
-			meta_set "failure_detail" "${stack}"
+			build_data::set_string "failure_reason" "stack::unknown"
+			build_data::set_string "failure_detail" "${stack}"
 			exit 1
 			;;
 	esac
@@ -62,7 +62,7 @@ function checks::duplicate_python_buildpack() {
 			Note: This error replaces the deprecation warning which was
 			displayed in build logs starting 13th December 2024.
 		EOF
-		meta_set "failure_reason" "checks::duplicate-python-buildpack"
+		build_data::set_string "failure_reason" "checks::duplicate-python-buildpack"
 		exit 1
 	fi
 }
@@ -93,7 +93,40 @@ function checks::existing_python_dir_present() {
 			Note: This error replaces the deprecation warning which was
 			displayed in build logs starting 13th December 2024.
 		EOF
-		meta_set "failure_reason" "checks::existing-python-dir"
+		build_data::set_string "failure_reason" "checks::existing-python-dir"
 		exit 1
 	fi
+}
+
+function checks::existing_venv_dir_present() {
+	local build_dir="${1}"
+
+	for venv_name in ".venv" "venv"; do
+		if [[ -f "${build_dir}/${venv_name}/pyvenv.cfg" ]]; then
+			output::warning <<-EOF
+				Warning: Existing '${venv_name}/' directory found.
+
+				Your app's source code contains an existing directory named
+				'${venv_name}/', which looks like a Python virtual environment:
+
+				$(find "${venv_name}/" -maxdepth 2 | sort || true)
+
+				Including a virtual environment directory in your app source
+				isn't supported since the files within it are specific to a
+				single machine and so won't work when run somewhere else.
+
+				If you've committed a '${venv_name}/' directory to your Git repo, you
+				must delete it and add the directory to your .gitignore file:
+				https://docs.github.com/en/get-started/git-basics/ignoring-files
+
+				If the directory was created by a 'bin/pre_compile' hook or an
+				earlier buildpack, you must update them to create the virtual
+				environment in a different location.
+
+				In future versions of the buildpack, this warning will be turned
+				into an error.
+			EOF
+			build_data::set_string "existing_venv_dir_present" "${venv_name}"
+		fi
+	done
 }
