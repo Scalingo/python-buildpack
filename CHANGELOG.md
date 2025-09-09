@@ -3,6 +3,40 @@
 ## [Unreleased]
 
 
+## [v306] - 2025-09-09
+
+- Updated uv from 0.8.13 to 0.8.15. ([#1894](https://github.com/heroku/heroku-buildpack-python/pull/1894))
+
+## [v305] - 2025-09-02
+
+- Added a warning if an existing Python virtual environment is found in the build directory at `.venv/` or `venv/`. In the future this warning will be made an error. ([#1890](https://github.com/heroku/heroku-buildpack-python/pull/1890))
+
+## [v304] - 2025-09-01
+
+- Fixed Django collectstatic and NLTK downloader support for apps that use config vars that shadow internal buildpack variable names (such as `CACHE_DIR`). ([#1888](https://github.com/heroku/heroku-buildpack-python/pull/1888))
+
+## [v303] - 2025-08-26
+
+- Updated uv from 0.8.9 to 0.8.13. ([#1880](https://github.com/heroku/heroku-buildpack-python/pull/1880))
+- Reduced default curl timeouts for faster retries of any transient connection issues on Heroku. ([#1884](https://github.com/heroku/heroku-buildpack-python/pull/1884))
+- Added support for overriding the default curl timeouts using `CURL_CONNECT_TIMEOUT` and `CURL_TIMEOUT`. These are intended for use in non-Heroku environments with slow connections, and so must be set via the build system rather than app config vars. ([#1884](https://github.com/heroku/heroku-buildpack-python/pull/1884))
+- Improved log output during curl retry attempts. ([#1884](https://github.com/heroku/heroku-buildpack-python/pull/1884))
+- Switched to Bash 5.0's `EPOCHREALTIME` for buildpack data store timing logic. ([#1881](https://github.com/heroku/heroku-buildpack-python/pull/1881))
+
+## [v302] - 2025-08-21
+
+- Stopped setting the `PYTHONHASHSEED` env var. ([#1876](https://github.com/heroku/heroku-buildpack-python/pull/1876))
+- Removed support for `BUILDPACK_S3_BASE_URL`. ([#1875](https://github.com/heroku/heroku-buildpack-python/pull/1875))
+- Refactored buildpack data store and `bin/report` to simplify the implementation and fix some string escaping bugs. ([#1878](https://github.com/heroku/heroku-buildpack-python/pull/1878))
+
+## [v301] - 2025-08-18
+
+- Simplified the handling of caches written by older buildpack versions. ([#1870](https://github.com/heroku/heroku-buildpack-python/pull/1870))
+
+## [v300] - 2025-08-15
+
+- The Python 3.13 version alias now resolves to Python 3.13.7. ([#1868](https://github.com/heroku/heroku-buildpack-python/pull/1868))
+
 ## [v299] - 2025-08-13
 
 - Updated uv from 0.8.5 to 0.8.9. ([#1866](https://github.com/heroku/heroku-buildpack-python/pull/1866))
@@ -1288,7 +1322,14 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v299...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v306...main
+[v306]: https://github.com/heroku/heroku-buildpack-python/compare/v305...v306
+[v305]: https://github.com/heroku/heroku-buildpack-python/compare/v304...v305
+[v304]: https://github.com/heroku/heroku-buildpack-python/compare/v303...v304
+[v303]: https://github.com/heroku/heroku-buildpack-python/compare/v302...v303
+[v302]: https://github.com/heroku/heroku-buildpack-python/compare/v301...v302
+[v301]: https://github.com/heroku/heroku-buildpack-python/compare/v300...v301
+[v300]: https://github.com/heroku/heroku-buildpack-python/compare/v299...v300
 [v299]: https://github.com/heroku/heroku-buildpack-python/compare/v298...v299
 [v298]: https://github.com/heroku/heroku-buildpack-python/compare/v297...v298
 [v297]: https://github.com/heroku/heroku-buildpack-python/compare/v296...v297

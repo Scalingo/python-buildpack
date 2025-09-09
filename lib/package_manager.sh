@@ -17,8 +17,8 @@ function package_manager::determine_package_manager() {
 			Error: No 'Pipfile.lock' found!
 
 			A 'Pipfile' file was found, however, the associated 'Pipfile.lock'
-			Pipenv lockfile was not. This means your app dependency versions
-			are not pinned, which means the package versions used on Scalingo
+			Pipenv lockfile wasn't. This means your app dependency versions
+			aren't pinned, which means the package versions used on Scalingo
 			might not match those installed in other environments.
 
 			Using Pipenv in this way is unsafe and no longer supported.
@@ -33,7 +33,7 @@ function package_manager::determine_package_manager() {
 			Note: This error replaces the warning which was displayed in
 			build logs starting 12th November 2024.
 		EOF
-		meta_set "failure_reason" "package-manager::pipenv-missing-lockfile"
+		build_data::set_string "failure_reason" "package-manager::pipenv-missing-lockfile"
 		exit 1
 	fi
 
@@ -62,9 +62,9 @@ function package_manager::determine_package_manager() {
 	if ((${#package_managers_found[@]} == 0)) && [[ -f "${build_dir}/setup.py" ]]; then
 		package_managers_found+=(pip)
 		package_managers_found_display_text+=("setup.py (pip)")
-		meta_set "setup_py_only" "true"
+		build_data::set_raw "setup_py_only" "true"
 	else
-		meta_set "setup_py_only" "false"
+		build_data::set_raw "setup_py_only" "false"
 	fi
 
 	local num_package_managers_found=${#package_managers_found[@]}
@@ -105,7 +105,7 @@ function package_manager::determine_package_manager() {
 				For help with using Python on Scalingo, see:
 				https://doc.scalingo.com/languages/python/start
 			EOF
-			meta_set "failure_reason" "package-manager::none-found"
+			build_data::set_string "failure_reason" "package-manager::none-found"
 			exit 1
 			;;
 		*)
@@ -155,7 +155,7 @@ function package_manager::determine_package_manager() {
 				EOF
 			fi
 
-			meta_set "package_manager_multiple_found" "$(
+			build_data::set_string "package_manager_multiple_found" "$(
 				IFS=,
 				echo "${package_managers_found[*]}"
 			)"

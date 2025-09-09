@@ -4,7 +4,7 @@
 # however, it helps Shellcheck realise the options under which these functions will run.
 set -euo pipefail
 
-DEFAULT_S3_BASE_URL="https://python-binaries.scalingo.com"
+S3_BASE_URL="https://python-binaries.scalingo.com"
 
 function python::install() {
 	local build_dir="${1}"
@@ -14,7 +14,7 @@ function python::install() {
 	local python_version_origin="${5}"
 
 	local install_python_start_time
-	install_python_start_time=$(nowms)
+	install_python_start_time=$(build_data::current_unix_realtime)
 	local install_dir="${build_dir}/.scalingo/python"
 
 	if [[ -f "${install_dir}/bin/python" ]]; then
@@ -23,15 +23,6 @@ function python::install() {
 		output::step "Installing Python ${python_full_version}"
 
 		mkdir -p "${install_dir}"
-
-		# Note: This can't be used via app config vars, since it doesn't reference the value from ENV_DIR.
-		# TODO: Remove this for parity with the Python CNB, if metrics show it to be unused on Heroku.
-		if [[ -v BUILDPACK_S3_BASE_URL ]]; then
-			local s3_base_url="${BUILDPACK_S3_BASE_URL}"
-			meta_set "custom_s3_base_url" "true"
-		else
-			local s3_base_url="${DEFAULT_S3_BASE_URL}"
-		fi
 
 		# Calculating the Ubuntu version from the stack name saves having to shell out to `lsb_release`.
 		local ubuntu_version
@@ -42,7 +33,7 @@ function python::install() {
 		arch=$( dpkg --print-architecture )
 
 		# e.g.: https://heroku-buildpack-python.s3.us-east-1.amazonaws.com/python-3.13.0-ubuntu-24.04-amd64.tar.zst
-		local python_url="${s3_base_url}/python-${python_full_version}-ubuntu-${ubuntu_version}-${arch}.tar.zst"
+		local python_url="${S3_BASE_URL}/python-${python_full_version}-ubuntu-${ubuntu_version}-${arch}.tar.zst"
 
 		local error_log
 		error_log=$(mktemp)
@@ -50,21 +41,20 @@ function python::install() {
 		# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
 		if ! {
 			{
-				# We set max-time for improved UX/metrics for hanging downloads compared to relying
-				# on the build system timeout. The Python archives are only ~10 MB so take < 1s to
-				# download on Heroku's build system, however, we use much higher timeouts so that
-				# the buildpack works in non-Heroku environments that may be far from `us-east-1`
-				# or have a slower connection. We don't use `--speed-limit` since it gives worse
-				# error messages when used with retries and piping to tar.
+				# We set max-time for improved UX/metrics for hanging downloads compared to relying on the build
+				# system timeout. We don't use `--speed-limit` since it gives worse error messages when used with
+				# retries and piping to tar. The Python archives are ~10 MB so only take ~1s to download on Heroku,
+				# so we set low timeouts to reduce delays before retries. However, we allow customising the timeouts
+				# to support non-Heroku environments that may be far from `us-east-1` or have a slower connection.
+				# We use `--no-progress-meter` rather than `--silent` so that retry status messages are printed.
 				curl \
-					--connect-timeout 10 \
+					--connect-timeout "${CURL_CONNECT_TIMEOUT:-3}" \
 					--fail \
-					--max-time 120 \
-					--retry-max-time 120 \
-					--retry 3 \
+					--max-time "${CURL_TIMEOUT:-60}" \
+					--no-progress-meter \
+					--retry-max-time "${CURL_TIMEOUT:-60}" \
+					--retry 5 \
 					--retry-connrefused \
-					--show-error \
-					--silent \
 					"${python_url}" \
 					| tar \
 						--directory "${install_dir}" \
@@ -108,8 +98,8 @@ function python::install() {
 					This will allow your app to receive the latest available Python
 					patch version automatically, and prevent this type of error.
 				EOF
-				meta_set "failure_reason" "python-version::unknown-patch"
-				meta_set "failure_detail" "${python_full_version}"
+				build_data::set_string "failure_reason" "python-version::unknown-patch"
+				build_data::set_string "failure_detail" "${python_full_version}"
 			else
 				output::error <<-EOF
 					Error: Unable to download/install Python.
@@ -126,14 +116,14 @@ function python::install() {
 
 					Then try building again to see if the error resolves itself.
 				EOF
-				meta_set "failure_reason" "install-python"
+				build_data::set_string "failure_reason" "install-python"
 				# e.g.: 'curl: (6) Could not resolve host: heroku-buildpack-python.s3.us-east-1.amazonaws.com'
-				meta_set "failure_detail" "$(head --lines=1 "${error_log}" || true)"
+				build_data::set_string "failure_detail" "$(head --lines=1 "${error_log}" || true)"
 			fi
 
 			exit 1
 		fi
 	fi
 
-	meta_time "python_install_duration" "${install_python_start_time}"
+	build_data::set_duration "python_install_duration" "${install_python_start_time}"
 }

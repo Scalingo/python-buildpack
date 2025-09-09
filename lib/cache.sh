@@ -33,13 +33,15 @@ function cache::restore() {
 	local python_full_version="${5}"
 	local package_manager="${6}"
 
+	local cache_restore_start_time
+	cache_restore_start_time=$(build_data::current_unix_realtime)
+
 	if [[ ! -d "${cache_dir}/.scalingo/python" ]]; then
-		meta_set "cache_status" "empty"
+		build_data::set_string "cache_status" "empty"
+		build_data::set_duration "cache_restore_duration" "${cache_restore_start_time}"
 		return 0
 	fi
 
-	local cache_restore_start_time
-	cache_restore_start_time=$(nowms)
 	local cache_invalidation_reasons=()
 
 	local cached_stack
@@ -52,35 +54,21 @@ function cache::restore() {
 		cache_invalidation_reasons+=("The Python version has changed from ${cached_python_full_version:-"unknown"} to ${python_full_version}")
 	fi
 
-	# The metadata store only exists in caches created in v252+ of the buildpack (released 2024-06-17),
-	# so here and below we have to handle the case where `meta_prev_get` returns the empty string.
 	local cached_package_manager
-	cached_package_manager="$(meta_prev_get "package_manager")"
+	cached_package_manager="$(build_data::get_previous "package_manager")"
 	if [[ -z "${cached_package_manager}" ]]; then
-		# Using `compgen` since `[[ -d ... ]]` doesn't work with globs.
-		if compgen -G "${cache_dir}/.scalingo/python/lib/python*/site-packages/pipenv" >/dev/null; then
-			cached_package_manager="pipenv"
-		elif compgen -G "${cache_dir}/.scalingo/python/lib/python*/site-packages/pip" >/dev/null; then
-			cached_package_manager="pip"
-		fi
-	fi
-
-	if [[ "${cached_package_manager}" != "${package_manager}" ]]; then
+		# The build data store only exists in caches created by v252+ of the buildpack (released 2024-06-17).
+		cache_invalidation_reasons+=("The buildpack cache format has changed")
+	elif [[ "${cached_package_manager}" != "${package_manager}" ]]; then
 		cache_invalidation_reasons+=("The package manager has changed from ${cached_package_manager:-"unknown"} to ${package_manager}")
 	else
 		case "${package_manager}" in
 			pip)
 				local cached_pip_version
-				cached_pip_version="$(meta_prev_get "pip_version")"
-				# Handle caches written by buildpack versions older than v252 (see above).
-				if [[ -z "${cached_pip_version}" ]]; then
-					# Whilst we don't know the old version, we know the pip version has definitely
-					# changed since buildpack v251.
-					cache_invalidation_reasons+=("The pip version has changed")
-				elif [[ "${cached_pip_version}" != "${PIP_VERSION:?}" ]]; then
-					cache_invalidation_reasons+=("The pip version has changed from ${cached_pip_version} to ${PIP_VERSION}")
+				cached_pip_version="$(build_data::get_previous "pip_version")"
+				if [[ "${cached_pip_version}" != "${PIP_VERSION:?}" ]]; then
+					cache_invalidation_reasons+=("The pip version has changed from ${cached_pip_version:-"unknown"} to ${PIP_VERSION}")
 				fi
-
 				# We invalidate the cache if requirements.txt changes since pip is a package installer
 				# rather than a project/environment manager, and so does not deterministically manage
 				# installed Python packages. For example, if a package entry in a requirements file is
@@ -93,20 +81,15 @@ function cache::restore() {
 				;;
 			pipenv)
 				local cached_pipenv_version
-				cached_pipenv_version="$(meta_prev_get "pipenv_version")"
-				# Handle caches written by buildpack versions older than v252 (see above).
-				if [[ -z "${cached_pipenv_version}" ]]; then
-					# Whilst we don't know the old version, we know the Pipenv version has definitely
-					# changed since buildpack v251.
-					cache_invalidation_reasons+=("The Pipenv version has changed")
-				elif [[ "${cached_pipenv_version}" != "${PIPENV_VERSION:?}" ]]; then
-					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version} to ${PIPENV_VERSION}")
+				cached_pipenv_version="$(build_data::get_previous "pipenv_version")"
+				if [[ "${cached_pipenv_version}" != "${PIPENV_VERSION:?}" ]]; then
+					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version:-"unknown"} to ${PIPENV_VERSION}")
 				fi
 				# `pipenv {install,sync}` by design don't actually uninstall packages on their own (!!):
 				# and we can't use `pipenv clean` since it isn't compatible with `--system`.
 				# https://github.com/pypa/pipenv/issues/3365
 				# We have to explicitly check for the presence of the Pipfile.lock.sha256 file,
-				# since we only started writing it to the build cache as of buildpack v292+.
+				# since we only started writing it to the build cache as of buildpack v292 (released 2025-07-23).
 				local pipfile_lock_checksum_file="${cache_dir}/.scalingo/python/Pipfile.lock.sha256"
 				if [[ -f "${pipfile_lock_checksum_file}" ]] && ! sha256sum --check --strict --status "${pipfile_lock_checksum_file}"; then
 					cache_invalidation_reasons+=("The contents of Pipfile.lock changed")
@@ -114,16 +97,14 @@ function cache::restore() {
 				;;
 			poetry)
 				local cached_poetry_version
-				cached_poetry_version="$(meta_prev_get "poetry_version")"
-				# Poetry support was added after the metadata store, so we'll always have the version here.
+				cached_poetry_version="$(build_data::get_previous "poetry_version")"
 				if [[ "${cached_poetry_version}" != "${POETRY_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The Poetry version has changed from ${cached_poetry_version:-"unknown"} to ${POETRY_VERSION}")
 				fi
 				;;
 			uv)
 				local cached_uv_version
-				cached_uv_version="$(meta_prev_get "uv_version")"
-				# uv support was added after the metadata store, so we'll always have the version here.
+				cached_uv_version="$(build_data::get_previous "uv_version")"
 				if [[ "${cached_uv_version}" != "${UV_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The uv version has changed from ${cached_uv_version:-"unknown"} to ${UV_VERSION}")
 				fi
@@ -153,7 +134,7 @@ function cache::restore() {
 			"${cache_dir}/.scalingo/python-version" \
 			"${cache_dir}/.scalingo/requirements.txt"
 
-		meta_set "cache_status" "discarded"
+		build_data::set_string "cache_status" "discarded"
 	else
 		output::step "Restoring cache"
 		mkdir -p "${build_dir}/.scalingo"
@@ -161,16 +142,18 @@ function cache::restore() {
 		# build directory are on the same filesystem mount. The Python directory is guaranteed
 		# to not already exist thanks to the earlier `checks::existing_python_dir_present()`.
 		mv "${cache_dir}/.scalingo/python" "${build_dir}/.scalingo/"
-		meta_set "cache_status" "reused"
+		build_data::set_string "cache_status" "reused"
 	fi
 
 	# Remove any legacy cache contents written by older buildpack versions.
 	rm -rf \
+		"${cache_dir}/build-data/python" \
+		"${cache_dir}/build-data/python-prev" \
 		"${cache_dir}/.scalingo/python-sqlite3-version" \
 		"${cache_dir}/.scalingo/src" \
 		"${cache_dir}/.scalingo/vendor"
 
-	meta_time "cache_restore_duration" "${cache_restore_start_time}"
+	build_data::set_duration "cache_restore_duration" "${cache_restore_start_time}"
 }
 
 # Copies Python and dependencies from the build directory to the cache, for use by subsequent builds.
@@ -182,7 +165,7 @@ function cache::save() {
 	local package_manager="${5}"
 
 	local cache_save_start_time
-	cache_save_start_time=$(nowms)
+	cache_save_start_time=$(build_data::current_unix_realtime)
 
 	output::step "Saving cache"
 
@@ -197,8 +180,8 @@ function cache::save() {
 	cp --recursive "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
 
 	# Metadata used by subsequent builds to determine whether the cache can be reused.
-	# These are written/consumed via separate files and not the metadata store for compatibility
-	# with buildpack versions prior to the metadata store existing (which was only added in v252).
+	# These are written/consumed via separate files and not the build data store for compatibility
+	# with buildpack versions prior to the build data store existing (which was only added in v252).
 	echo "${stack}" >"${cache_dir}/.scalingo/python-stack"
 	# For historical reasons the Python version was always stored with a `python-` prefix.
 	# We continue to use that format so that the file can be read by older buildpack versions.
@@ -215,5 +198,5 @@ function cache::save() {
 		sha256sum Pipfile.lock >"${cache_dir}/.scalingo/python/Pipfile.lock.sha256"
 	fi
 
-	meta_time "cache_save_duration" "${cache_save_start_time}"
+	build_data::set_duration "cache_save_duration" "${cache_save_start_time}"
 }
