@@ -170,14 +170,28 @@ function cache::save() {
 	output::step "Saving cache"
 
 	mkdir -p "${cache_dir}/.scalingo"
-
 	rm -rf "${cache_dir}/.scalingo/python"
-	# In theory we should be able to use `--reflink=auto` here for improved performance, however,
-	# initial benchmarking showed it to be slower with the file system type / mounts used by the
-	# Heroku build system for some reason. (Copying was faster using `--link`, however, that fails
-	# when copying cross-mount such as for Heroku CI and build-in-app-dir, plus hardlinks could
-	# result in unintended cache mutation if later buildpacks add/remove packages etc.)
-	cp --recursive "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
+
+	local build_dir_filesystem cache_dir_filesystem
+	build_dir_filesystem="$(df --output=target "${build_dir}")"
+	cache_dir_filesystem="$(df --output=target "${cache_dir}")"
+
+	# For improved performance, we copy using hard-links if possible. This requires that the build
+	# and cache directory are on the same filesystem mount - which is the case for standard builds
+	# but not Heroku CI or build-in-app-dir. Ideally we would be able to use `--reflink=auto` here
+	# (which would avoid the need for a conditional and also mean accidental edits by users in later
+	# buildpacks to one location doesn't affect the other), however, with the current filesystems
+	# used in production benchmarking showed `--reflinks=auto` was much slower than hardlinks.
+	if [[ "${build_dir_filesystem}" == "${cache_dir_filesystem}" ]]; then
+		local additional_copy_args=(--link)
+	else
+		local additional_copy_args=()
+	fi
+
+	# We must explicitly use `--no-dereference` since the default cp behaviour varies based on other
+	# options used (such as `--link`), and we don't want symlinks to be resolved since otherwise the
+	# copy will fail when copying packages that contain broken symlinks.
+	cp --recursive --no-dereference "${additional_copy_args[@]}" "${build_dir}/.scalingo/python" "${cache_dir}/.scalingo/"
 
 	# Metadata used by subsequent builds to determine whether the cache can be reused.
 	# These are written/consumed via separate files and not the build data store for compatibility
