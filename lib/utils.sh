@@ -91,10 +91,7 @@ function utils::err_trap() {
 		An unhandled error occurred while executing the command:
 		${failing_command}
 
-		If this issue persists, please open a support ticket or file
-		an issue on the buildpack's GitHub repository:
-		https://help.heroku.com/
-		https://github.com/heroku/heroku-buildpack-python/issues
+		If this issue persists, please reach out to our support team.
 
 		Stack trace:
 		${stack_trace}
