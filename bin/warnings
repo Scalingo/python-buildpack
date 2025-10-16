@@ -36,7 +36,7 @@ show-warnings() {
 			source), then install the `libsqlite3-dev` and `libsqlite3-0`
 			packages using the APT buildpack (make sure the APT buildpack
 			runs before the Python buildpack, not after):
-			https://github.com/heroku/heroku-buildpack-apt
+			https://doc.scalingo.com/platform/deployment/buildpacks/apt
 		EOF
 		build_data::set_string "failure_detail" "sqlite3.h: No such file or directory"
 	elif grep -qi 'Please use pip<24.1 if you need to use this version' "${WARNINGS_LOG}"; then
