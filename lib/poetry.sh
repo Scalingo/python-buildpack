@@ -46,19 +46,7 @@ function poetry::install_poetry() {
 		# it bundles its own copy for use as a fallback. As such we don't need to install pip
 		# into the Poetry venv (and in fact, Poetry wouldn't use this install anyway, since
 		# it only finds an external pip if it exists in the target venv).
-		# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
-		if ! python -m venv --without-pip "${poetry_venv_dir}" |& output::indent; then
-			output::error <<-EOF
-				Internal Error: Unable to create virtual environment for Poetry.
-
-				The 'python -m venv' command to create a virtual environment did
-				not exit successfully.
-
-				See the log output above for more information.
-			EOF
-			build_data::set_string "failure_reason" "internal-error::create-venv::poetry"
-			exit 1
-		fi
+		python -m venv --without-pip "${poetry_venv_dir}"
 
 		local bundled_pip_module_path
 		bundled_pip_module_path="$(utils::bundled_pip_module_path "${python_home}" "${python_major_version}")"
@@ -68,6 +56,8 @@ function poetry::install_poetry() {
 		# pip versions bundled with Python 3.9/3.10.
 		# `--isolated`: Prevents any custom pip configuration added by third party buildpacks (via env
 		#               vars or global config files) from breaking package manager bootstrapping.
+		# We pin to an older dulwich version to work around https://github.com/jelmer/dulwich/issues/1948
+		# on Python 3.9.0/3.9.1. TODO: Remove this pin when we drop support for Python 3.9 in Jan 2026.
 		# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
 		if ! {
 			"${poetry_venv_dir}/bin/python" "${bundled_pip_module_path}" \
@@ -78,6 +68,7 @@ function poetry::install_poetry() {
 				--no-input \
 				--quiet \
 				"poetry==${POETRY_VERSION}" \
+				dulwich==0.24.5 \
 				|& output::indent
 		}; then
 			output::error <<-EOF
@@ -142,6 +133,9 @@ function poetry::install_dependencies() {
 	# We only display the most relevant command args here, to improve the signal to noise ratio.
 	output::step "Installing dependencies using '${poetry_install_command[*]}'"
 
+	local install_log
+	install_log=$(mktemp)
+
 	# `--compile`: Compiles Python bytecode, to improve app boot times (pip does this by default).
 	# `--no-ansi`: Whilst we'd prefer to enable colour if possible, Poetry also emits ANSI escape
 	#              codes for redrawing lines, which renders badly in persisted build logs.
@@ -151,12 +145,12 @@ function poetry::install_dependencies() {
 			--compile \
 			--no-ansi \
 			--no-interaction \
-			|& tee "${WARNINGS_LOG:?}" \
+			|& tee "${install_log}" \
 			|& sed --unbuffered --expression '/Skipping virtualenv creation/d' \
 			|& output::indent
 	}; then
 		# TODO: Overhaul warnings and combine them with error handling.
-		show-warnings
+		show-warnings "${install_log}"
 
 		output::error <<-EOF
 			Error: Unable to install dependencies using Poetry.

@@ -40,19 +40,7 @@ function pipenv::install_pipenv() {
 
 		# We use the pip wheel bundled within Python's standard library to install Pipenv,
 		# since Pipenv vendors its own pip, so doesn't need an install in the venv.
-		# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
-		if ! python -m venv --without-pip "${pipenv_venv_dir}" |& output::indent; then
-			output::error <<-EOF
-				Internal Error: Unable to create virtual environment for Pipenv.
-
-				The 'python -m venv' command to create a virtual environment did
-				not exit successfully.
-
-				See the log output above for more information.
-			EOF
-			build_data::set_string "failure_reason" "internal-error::create-venv::pipenv"
-			exit 1
-		fi
+		python -m venv --without-pip "${pipenv_venv_dir}"
 
 		local bundled_pip_module_path
 		bundled_pip_module_path="$(utils::bundled_pip_module_path "${python_home}" "${python_major_version}")"
@@ -154,6 +142,9 @@ function pipenv::install_dependencies() {
 	# We only display the most relevant command args here, to improve the signal to noise ratio.
 	output::step "Installing dependencies using '${pipenv_install_command[*]}'"
 
+	local install_log
+	install_log=$(mktemp)
+
 	# TODO: Expose app config vars to the install command as part of doing so for all package managers.
 	# `PIPENV_NOSPIN`: Disable progress spinners.
 	# `PIP_SRC`: Override the editable VCS repo location from its default of inside the build directory
@@ -162,11 +153,11 @@ function pipenv::install_dependencies() {
 	if ! {
 		PIPENV_NOSPIN="1" PIP_SRC="/app/.scalingo/python/src" \
 			"${pipenv_install_command[@]}" \
-			|& tee "${WARNINGS_LOG:?}" \
+			|& tee "${install_log}" \
 			|& output::indent
 	}; then
 		# TODO: Overhaul warnings and combine them with error handling.
-		show-warnings
+		show-warnings "${install_log}"
 
 		output::error <<-EOF
 			Error: Unable to install dependencies using Pipenv.

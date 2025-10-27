@@ -52,12 +52,6 @@ export PATH=":/usr/local/bin:${PATH}"
 # Exported for use in subshells, such as the steps run via sub_env.
 export BUILD_DIR CACHE_DIR ENV_DIR
 
-# Common Problem Warnings:
-# This section creates a temporary file in which to stick the output of `pip install`.
-# The `warnings` subscript then greps through this for common problems and guides
-# the user towards resolution of known issues.
-WARNINGS_LOG=$(mktemp)
-
 # Sanitize externally-provided environment variables:
 # The following environment variables are either problematic or simply unnecessary
 # for the buildpack to have knowledge of, so we unset them, to keep the environment
@@ -173,7 +167,7 @@ python::install "${BUILD_DIR}" "${STACK}" "${python_full_version}" "${python_maj
 package_manager_install_start_time=$(build_data::current_unix_realtime)
 case "${package_manager}" in
 	pip)
-		pip::install_pip_setuptools_wheel "${python_home}" "${python_major_version}"
+		pip::install_pip "${python_home}" "${python_major_version}"
 		;;
 	pipenv)
 		pipenv::install_pipenv "${python_home}" "${python_major_version}" "${EXPORT_PATH}" "${PROFILE_PATH}"
