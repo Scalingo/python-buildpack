@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 
+## [v318] - 2025-11-12
+
+- Improved the error message shown when a `.python-version` file uses an unsupported file encoding. ([#1958](https://github.com/heroku/heroku-buildpack-python/pull/1958))
+- Improved the error message shown when a `.python-version` or `runtime.txt` file contain an invalid Python version. ([#1958](https://github.com/heroku/heroku-buildpack-python/pull/1958))
+- Added support for commented lines in `runtime.txt`, for parity with `.python-version`. ([#1958](https://github.com/heroku/heroku-buildpack-python/pull/1958))
+
+## [v317] - 2025-11-03
+
+- The Python 3.9 version alias now resolves to Python 3.9.25. ([#1955](https://github.com/heroku/heroku-buildpack-python/pull/1955))
+- Updated uv from 0.9.5 to 0.9.7. ([#1952](https://github.com/heroku/heroku-buildpack-python/pull/1952))
+
 ## [v316] - 2025-10-27
 
 - Improved the error message when a `.python-version` or `runtime.txt` file contains invisible Unicode whitespace characters. ([#1947](https://github.com/heroku/heroku-buildpack-python/pull/1947))
@@ -1379,7 +1390,9 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v316...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v318...main
+[v318]: https://github.com/heroku/heroku-buildpack-python/compare/v317...v318
+[v317]: https://github.com/heroku/heroku-buildpack-python/compare/v316...v317
 [v316]: https://github.com/heroku/heroku-buildpack-python/compare/v315...v316
 [v315]: https://github.com/heroku/heroku-buildpack-python/compare/v314...v315
 [v314]: https://github.com/heroku/heroku-buildpack-python/compare/v313...v314
