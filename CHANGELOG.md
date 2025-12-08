@@ -5,7 +5,6 @@
 
 ## [v323] - 2025-12-05
 
-- Changed the default Python version for new apps from 3.13 to 3.14. ([#1984](https://github.com/heroku/heroku-buildpack-python/pull/1984))
 - The Python 3.14 version alias now resolves to Python 3.14.2. ([#1985](https://github.com/heroku/heroku-buildpack-python/pull/1985))
 - The Python 3.13 version alias now resolves to Python 3.13.11. ([#1985](https://github.com/heroku/heroku-buildpack-python/pull/1985))
 
