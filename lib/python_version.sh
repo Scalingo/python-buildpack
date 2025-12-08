@@ -716,7 +716,7 @@ function python_version::warn_if_deprecated_major_version() {
 			changing the version in your ${version_origin} file.
 
 			For more information, see:
-			https://devcenter.heroku.com/articles/python-support#supported-python-versions
+			https://doc.scalingo.com/languages/python/start#availability
 		EOF
 	fi
 }

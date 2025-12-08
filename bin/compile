@@ -294,8 +294,7 @@ cache::save "${BUILD_DIR}" "${CACHE_DIR}" "${STACK}" "${python_full_version}" "$
 
 if [[ "${package_manager}" != "uv" ]]; then
 	output::notice <<-EOF
-		Note: We recently added support for the package manager uv:
-		https://devcenter.heroku.com/changelog-items/3238
+		Note: We recently added support for the package manager uv.
 
 		It's now our recommended Python package manager, since it
 		supports lockfiles, is faster, gives more helpful error
