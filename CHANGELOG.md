@@ -3,6 +3,38 @@
 ## [Unreleased]
 
 
+## [v323] - 2025-12-05
+
+- Changed the default Python version for new apps from 3.13 to 3.14. ([#1984](https://github.com/heroku/heroku-buildpack-python/pull/1984))
+- The Python 3.14 version alias now resolves to Python 3.14.2. ([#1985](https://github.com/heroku/heroku-buildpack-python/pull/1985))
+- The Python 3.13 version alias now resolves to Python 3.13.11. ([#1985](https://github.com/heroku/heroku-buildpack-python/pull/1985))
+
+## [v322] - 2025-12-02
+
+- The Python 3.14 version alias now resolves to Python 3.14.1. ([#1982](https://github.com/heroku/heroku-buildpack-python/pull/1982))
+- The Python 3.13 version alias now resolves to Python 3.13.10. ([#1982](https://github.com/heroku/heroku-buildpack-python/pull/1982))
+- Updated uv from 0.9.11 to 0.9.14. ([#1979](https://github.com/heroku/heroku-buildpack-python/pull/1979))
+
+## [v321] - 2025-11-21
+
+- Deprecated support for Python 3.10. ([#1972](https://github.com/heroku/heroku-buildpack-python/pull/1972))
+- Updated uv from 0.9.9 to 0.9.11. ([#1973](https://github.com/heroku/heroku-buildpack-python/pull/1973))
+- Added more messaging to the build log recommending uv. ([#1975](https://github.com/heroku/heroku-buildpack-python/pull/1975))
+- Switched from using `--disable-pip-version-check` to the env var `PIP_DISABLE_PIP_VERSION_CHECK=1` when using pip. ([#1974](https://github.com/heroku/heroku-buildpack-python/pull/1974))
+
+## [v320] - 2025-11-20
+
+- Added a check for misspelled `.python-version` files. ([#1970](https://github.com/heroku/heroku-buildpack-python/pull/1970))
+- Fixed regex for null bytes character replacement to replace all occurrences, not just the first. ([#1966](https://github.com/heroku/heroku-buildpack-python/pull/1966))
+- Unpinned Poetry's `dulwich` version, since the upstream incompatibility with older Python has been fixed. ([#1967](https://github.com/heroku/heroku-buildpack-python/pull/1967))
+
+## [v319] - 2025-11-14
+
+- Updated uv from 0.9.7 to 0.9.9. ([#1961](https://github.com/heroku/heroku-buildpack-python/pull/1961))
+- Improved the error message shown for `.python-version` files that contain unexpected ASCII control code characters. ([#1962](https://github.com/heroku/heroku-buildpack-python/pull/1962))
+- Fixed Bash command substitution warnings from being shown if `runtime.txt` contains null byte characters. ([#1962](https://github.com/heroku/heroku-buildpack-python/pull/1962))
+- Improved the error message shown if the buildpack's build data file is deleted by a pre/post-compile hook. ([#1963](https://github.com/heroku/heroku-buildpack-python/pull/1963))
+
 ## [v318] - 2025-11-12
 
 - Improved the error message shown when a `.python-version` file uses an unsupported file encoding. ([#1958](https://github.com/heroku/heroku-buildpack-python/pull/1958))
@@ -1390,7 +1422,12 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v318...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v323...main
+[v323]: https://github.com/heroku/heroku-buildpack-python/compare/v322...v323
+[v322]: https://github.com/heroku/heroku-buildpack-python/compare/v321...v322
+[v321]: https://github.com/heroku/heroku-buildpack-python/compare/v320...v321
+[v320]: https://github.com/heroku/heroku-buildpack-python/compare/v319...v320
+[v319]: https://github.com/heroku/heroku-buildpack-python/compare/v318...v319
 [v318]: https://github.com/heroku/heroku-buildpack-python/compare/v317...v318
 [v317]: https://github.com/heroku/heroku-buildpack-python/compare/v316...v317
 [v316]: https://github.com/heroku/heroku-buildpack-python/compare/v315...v316

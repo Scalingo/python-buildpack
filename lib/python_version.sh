@@ -8,13 +8,13 @@ LATEST_PYTHON_3_9="3.9.25"
 LATEST_PYTHON_3_10="3.10.19"
 LATEST_PYTHON_3_11="3.11.14"
 LATEST_PYTHON_3_12="3.12.12"
-LATEST_PYTHON_3_13="3.13.9"
-LATEST_PYTHON_3_14="3.14.0"
+LATEST_PYTHON_3_13="3.13.11"
+LATEST_PYTHON_3_14="3.14.2"
 
 OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION=9
 NEWEST_SUPPORTED_PYTHON_3_MINOR_VERSION=14
 
-DEFAULT_PYTHON_FULL_VERSION="${LATEST_PYTHON_3_13}"
+DEFAULT_PYTHON_FULL_VERSION="${LATEST_PYTHON_3_14}"
 DEFAULT_PYTHON_MAJOR_VERSION="${DEFAULT_PYTHON_FULL_VERSION%.*}"
 
 # Integer with no redundant leading zeros.
@@ -23,6 +23,27 @@ INT_REGEX="(0|[1-9][0-9]*)"
 PYTHON_VERSION_REGEX="${INT_REGEX}\.${INT_REGEX}(\.${INT_REGEX})?"
 # Versions of form N.N.N only.
 PYTHON_FULL_VERSION_REGEX="${INT_REGEX}\.${INT_REGEX}\.${INT_REGEX}"
+
+# Misspellings of the `.python-version` file seen in the wild.
+MISSPELLED_PYTHON_VERSION_FILE_NAMES=(
+	".python_version.txt"
+	".python_version"
+	".python-version "
+	".python-version."
+	".python-version.py"
+	".python-version.rtf"
+	".python-version.txt"
+	".python-version.TXT"
+	".Python-version"
+	".python.version"
+	".pythonversion"
+	"'.python-version'"
+	"python_version.txt"
+	"python_version"
+	"python-version."
+	"python-version.txt"
+	"python-version"
+)
 
 # Determine what Python version has been requested for the project.
 #
@@ -50,17 +71,6 @@ function python_version::read_requested_python_version() {
 	declare -n version="${4}"
 	declare -n origin="${5}"
 
-	# Record the names of files similar to .python-version in the root of the app, to determine
-	# how often that file is misspelled, as a temporary first step before deciding whether to add
-	# a new warning/error (and if so, which for which misspelled filenames it should check).
-	local python_version_files
-	python_version_files="$(
-		find . -maxdepth 1 -type f -iregex '\./\.?python.?version.*' -printf '%P\n' | sort | tr '\n' ',' || true
-	)"
-	if [[ -n "${python_version_files}" ]]; then
-		build_data::set_string "python_version_files" "${python_version_files}"
-	fi
-
 	local runtime_txt_path="${build_dir}/runtime.txt"
 	if [[ -f "${runtime_txt_path}" ]]; then
 		version="$(python_version::parse_runtime_txt "${runtime_txt_path}")"
@@ -68,11 +78,43 @@ function python_version::read_requested_python_version() {
 		return 0
 	fi
 
+	local misspelled_python_version_file_name
+	for misspelled_python_version_file_name in "${MISSPELLED_PYTHON_VERSION_FILE_NAMES[@]}"; do
+		if [[ -f "${build_dir}/${misspelled_python_version_file_name}" ]]; then
+			# We use quotes around the current filename since one of the misspellings seen in the
+			# wild is where the filename contains trailing whitespace.
+			output::error <<-EOF
+				Error: Your .python-version file is spelled incorrectly.
+
+				Your app's .python-version file currently has the filename:
+				'${misspelled_python_version_file_name}'
+
+				However, the correct spelling is (without quotes):
+				'.python-version'
+
+				You must rename your file to the correct name.
+			EOF
+			build_data::set_string "failure_reason" "python-version-file::misspelled"
+			build_data::set_string "failure_detail" "${misspelled_python_version_file_name}"
+			exit 1
+		fi
+	done
+
 	local python_version_file_path="${build_dir}/.python-version"
 	if [[ -f "${python_version_file_path}" ]]; then
 		version="$(python_version::parse_python_version_file "${python_version_file_path}")"
 		origin=".python-version"
 		return 0
+	fi
+
+	# Record the names of files similar to `.python-version` in the root of the app, so we can track
+	# additional misspellings that might need to be added to `MISSPELLED_PYTHON_VERSION_FILE_NAMES`.
+	local python_version_files
+	python_version_files="$(
+		find . -maxdepth 1 -type f -iregex '\./.*python.?version.*' -printf '%P\n' | sort | tr '\n' ',' || true
+	)"
+	if [[ -n "${python_version_files}" ]]; then
+		build_data::set_string "python_version_files" "${python_version_files}"
 	fi
 
 	if [[ "${package_manager}" == "pipenv" ]]; then
@@ -151,28 +193,28 @@ function python_version::parse_python_version_file() {
 			continue
 		fi
 
-		# If we didn't find a valid Python version string, we check the file encoding so that we
+		# If we didn't find a valid Python version string, we check the text encoding so that we
 		# can display a more helpful error message if it turns out that the version was valid but
-		# that the file was just saved in the wrong encoding.
+		# that the file was just saved in the wrong encoding (such as UTF-8 with BOM or UTF-16).
 		#
-		# Example valid values:
+		# Example values `file` can return:
 		# `ASCII text`
 		# `ASCII text, with CRLF line terminators`
 		# `ASCII text, with no line terminators`
 		# `Unicode text, UTF-8 text`
-		#
-		# Example invalid values:
 		# `Unicode text, UTF-8 (with BOM) text`
 		# `Unicode text, UTF-16, little-endian text, with CRLF line terminators`
-		# `data` (for example when NUL or CTRL characters found)
+		# `data` (such as when the file contains a NUL or other control code characters)
+		# `very short file (no magic)` (such as when the file contains a single ESC character)
 		#
-		# Note: File can also return `very short file (no magic)` (eg a file that contains just a newline)
-		# and `empty`, but we won't see those here since we're iterating over trimmed lines.
+		# Note: File can also return `empty` but in that case we wouldn't be iterating over found lines.
 		local file_encoding
-		file_encoding="$(file --brief --dereference "${python_version_file_path}")"
+		# We exclude some file type tests to avoid false positives, since we only need the encoding.
+		file_encoding="$(file --brief --dereference --exclude json --exclude soft "${python_version_file_path}")"
 
 		case "${file_encoding}" in
-			*"ASCII text"* | *"UTF-8 text"*)
+			# Cases where the text encoding isn't the issue, and so the version itself must be invalid.
+			*"ASCII text"* | *"UTF-8 text"* | *"very short file"* | "data")
 				# Replace everything but printable ASCII, spaces and tabs with the Unicode replacement
 				# character, so any invisible unwanted characters (such as ASCII control codes or the
 				# Unicode zero width space character) are visible in the error message.
@@ -210,19 +252,20 @@ function python_version::parse_python_version_file() {
 				build_data::set_string "failure_detail" "${version:0:100}"
 				exit 1
 				;;
+			# Unsupported text encodings such as UTF-8 with BOM or UTF-16.
 			*)
 				output::error <<-EOF
 					Error: Unable to read .python-version.
 
 					Your .python-version file couldn't be read because it's using
-					an unsupported file encoding:
+					an unsupported text encoding:
 					${file_encoding}
 
 					Configure your editor to save files as UTF-8, without a BOM,
 					then delete and recreate the file using the correct encoding.
 
 					If that doesn't work, make sure you don't have a .gitattributes
-					file that's overriding the file encoding.
+					file that's overriding the text encoding.
 
 					Note: On Windows, if you pipe or redirect output to a file
 					it can result in the file being encoded in UTF-16 LE when
@@ -289,12 +332,14 @@ function python_version::parse_python_version_file() {
 
 # Outputs all populated (non-empty and not commented with '#') lines from the passed file,
 # with leading/trailing whitespace (including Unicode whitespace) trimmed from each line.
+# We replace any NUL characters with a placeholder since Bash variables can't store them.
 function python_version::read_trimmed_version_lines() {
 	local file="${1}"
 	LC_ALL=C.UTF-8 sed \
 		--regexp-extended \
 		--expression 's/^[[:space:]]+//' \
 		--expression 's/[[:space:]]+$//' \
+		--expression 's/\x0/␀/g' \
 		--expression '/^(#|$)/d' \
 		"${file}"
 }
@@ -643,8 +688,8 @@ function python_version::warn_if_deprecated_major_version() {
 		output::warning <<-EOF
 			Warning: Support for Python 3.9 is ending soon!
 
-			Python 3.9 will reach its upstream end-of-life in October 2025,
-			at which point it will no longer receive security updates:
+			Python 3.9 reached its upstream end-of-life on 31st October 2025,
+			and so no longer receives security updates:
 			https://devguide.python.org/versions/#supported-versions
 
 			As such, support for Python 3.9 will be removed from this
@@ -655,6 +700,23 @@ function python_version::warn_if_deprecated_major_version() {
 
 			For more information, see:
 			https://doc.scalingo.com/languages/python/start#availability
+		EOF
+	elif [[ "${requested_major_version}" == "3.10" ]]; then
+		output::warning <<-EOF
+			Warning: Support for Python 3.10 is deprecated!
+
+			Python 3.10 will reach its upstream end-of-life in October 2026,
+			at which point it will no longer receive security updates:
+			https://devguide.python.org/versions/#supported-versions
+
+			As such, support for Python 3.10 will be removed from this
+			buildpack on 6th January 2027.
+
+			Upgrade to a newer Python version as soon as possible, by
+			changing the version in your ${version_origin} file.
+
+			For more information, see:
+			https://devcenter.heroku.com/articles/python-support#supported-python-versions
 		EOF
 	fi
 }
