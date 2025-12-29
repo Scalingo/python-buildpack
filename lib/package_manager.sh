@@ -149,8 +149,7 @@ function package_manager::determine_package_manager() {
 
 				Note: If you use a third-party uv or Poetry buildpack, you must
 				remove it from your app, since it's no longer required and the
-				requirements.txt file it generates will trigger this error. See:
-				https://devcenter.heroku.com/articles/managing-buildpacks#remove-classic-buildpacks
+				requirements.txt file it generates will trigger this error.
 			EOF
 			build_data::set_string "failure_reason" "package-manager::multiple-found"
 			build_data::set_string "failure_detail" "$(
