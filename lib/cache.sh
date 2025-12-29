@@ -74,8 +74,8 @@ function cache::restore() {
 				# installed Python packages. For example, if a package entry in a requirements file is
 				# later removed, pip will not uninstall the package. This check can be removed if we
 				# ever switch to only caching pip's HTTP/wheel cache rather than site-packages.
-				# TODO: Remove the `-f` check once the setup.py fallback feature is removed.
-				if [[ -f "${build_dir}/requirements.txt" ]] && ! cmp --silent "${cache_dir}/.scalingo/requirements.txt" "${build_dir}/requirements.txt"; then
+				# TODO: Switch this to using sha256sum like the Pipenv implementation.
+				if ! cmp --silent "${cache_dir}/.scalingo/requirements.txt" "${build_dir}/requirements.txt"; then
 					cache_invalidation_reasons+=("The contents of requirements.txt changed")
 				fi
 				;;
@@ -201,9 +201,7 @@ function cache::save() {
 	# We continue to use that format so that the file can be read by older buildpack versions.
 	echo "python-${python_full_version}" >"${cache_dir}/.scalingo/python-version"
 
-	# TODO: Simplify this once multiple package manager files being found is turned into an
-	# error and the setup.py fallback feature is removed.
-	if [[ "${package_manager}" == "pip" && -f "${build_dir}/requirements.txt" ]]; then
+	if [[ "${package_manager}" == "pip" ]]; then
 		# TODO: Switch this to using sha256sum like the Pipenv implementation.
 		cp "${build_dir}/requirements.txt" "${cache_dir}/.scalingo/"
 	elif [[ "${package_manager}" == "pipenv" ]]; then

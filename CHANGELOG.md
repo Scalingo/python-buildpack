@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 
+## [v325] - 2025-12-10
+
+- The build now errors if the files for multiple package managers are found. This replaces the warning displayed since November 2024. ([#1993](https://github.com/heroku/heroku-buildpack-python/pull/1993))
+- Sunset the previously deprecated support for falling back to installing dependencies from a `setup.py` file if no Python package manager files were found. ([#1992](https://github.com/heroku/heroku-buildpack-python/pull/1992))
+- Updated uv from 0.9.14 to 0.9.17. ([#1995](https://github.com/heroku/heroku-buildpack-python/pull/1995))
+
+## [v324] - 2025-12-09
+
+- The build now errors if an existing Python virtual environment is found in the build directory at `.venv/` or `venv/`. This replaces the warning displayed since September 2025. ([#1990](https://github.com/heroku/heroku-buildpack-python/pull/1990))
+- Stopped adding the current working directory to `PATH`. ([#1987](https://github.com/heroku/heroku-buildpack-python/pull/1987))
+
 ## [v323] - 2025-12-05
 
 - The Python 3.14 version alias now resolves to Python 3.14.2. ([#1985](https://github.com/heroku/heroku-buildpack-python/pull/1985))
@@ -1421,7 +1432,9 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v323...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v325...main
+[v325]: https://github.com/heroku/heroku-buildpack-python/compare/v324...v325
+[v324]: https://github.com/heroku/heroku-buildpack-python/compare/v323...v324
 [v323]: https://github.com/heroku/heroku-buildpack-python/compare/v322...v323
 [v322]: https://github.com/heroku/heroku-buildpack-python/compare/v321...v322
 [v321]: https://github.com/heroku/heroku-buildpack-python/compare/v320...v321
