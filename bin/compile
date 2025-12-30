@@ -45,10 +45,6 @@ trap 'utils::err_trap' ERR
 checks::ensure_supported_stack "${STACK:?"Required env var STACK isn't set"}"
 checks::duplicate_python_buildpack "${BUILD_DIR}"
 
-# Prepend proper path for old-school virtualenv hackery.
-# This may not be necessary.
-export PATH=":/usr/local/bin:${PATH}"
-
 # Exported for use in subshells, such as the steps run via sub_env.
 export BUILD_DIR CACHE_DIR ENV_DIR
 
@@ -95,13 +91,18 @@ cd "${BUILD_DIR}"
 # Runs a `bin/pre_compile` script if found in the app source, allowing build customisation.
 hooks::run_hook "pre_compile"
 
-# These checks are after the pre_compile hook, so that we can check not only the original
-# app source, but also that the hook hasn't written to these locations either.
+# These later checks are after the pre_compile hook so that we can check not only the
+# original app source, but also that the hook hasn't written to these locations either.
 checks::existing_python_dir_present "${BUILD_DIR}"
-checks::existing_venv_dir_present "${BUILD_DIR}"
 
 package_manager="$(package_manager::determine_package_manager "${BUILD_DIR}")"
 build_data::set_string "package_manager" "${package_manager}"
+
+# This check is after the package manager step to improve the UX when the package manager file
+# is missing and the venv directory was the only reason the buildpack passed detection.
+# (Since once they remove the venv detection will fail, which would prevent us from being able
+# to display the more helpful "missing package manager file" error message on the next build).
+checks::existing_venv_dir_present "${BUILD_DIR}"
 
 cached_python_full_version="$(cache::cached_python_full_version "${CACHE_DIR}")"
 
