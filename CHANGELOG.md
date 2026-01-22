@@ -3,6 +3,32 @@
 ## [Unreleased]
 
 
+## [v331] - 2026-01-11
+
+- Updated uv from 0.9.21 to 0.9.24. ([#2013](https://github.com/heroku/heroku-buildpack-python/pull/2013))
+
+## [v330] - 2026-01-08
+
+- Re-apply a workaround for a Pipenv bug when using `--system`, that causes packages to not be installed correctly if they are also a dependency of Pipenv (such as `certifi` or `packaging`). ([#2011](https://github.com/heroku/heroku-buildpack-python/pull/2011))
+
+## [v329] - 2026-01-08
+
+- Updated Pipenv from 2025.0.4 to 2026.0.3. ([#2000](https://github.com/heroku/heroku-buildpack-python/pull/2000))
+
+## [v328] - 2026-01-07
+
+- Updated pip from 25.2 to 25.3. ([#2008](https://github.com/heroku/heroku-buildpack-python/pull/2008))
+- Stopped installing wheel when using pip with Python 3.12 and older. ([#2008](https://github.com/heroku/heroku-buildpack-python/pull/2008))
+
+## [v327] - 2026-01-07
+
+- Removed support for Python 3.9. ([#2005](https://github.com/heroku/heroku-buildpack-python/pull/2005))
+- Adjusted the error message shown if SQLite headers aren't found during package installation. ([#2006](https://github.com/heroku/heroku-buildpack-python/pull/2006))
+
+## [v326] - 2026-01-05
+
+- Updated uv from 0.9.17 to 0.9.21. ([#2003](https://github.com/heroku/heroku-buildpack-python/pull/2003))
+
 ## [v325] - 2025-12-10
 
 - The build now errors if the files for multiple package managers are found. This replaces the warning displayed since November 2024. ([#1993](https://github.com/heroku/heroku-buildpack-python/pull/1993))
@@ -178,7 +204,7 @@
 
 ## [v293] - 2025-07-23
 
-- Work around a Pipenv bug when using `--system`, that causes packages to not be installed correctly if they are also a dependency of Pipenv (such as `certifi` ). ([#1842](https://github.com/heroku/heroku-buildpack-python/pull/1842))
+- Work around a Pipenv bug when using `--system`, that causes packages to not be installed correctly if they are also a dependency of Pipenv (such as `certifi`). ([#1842](https://github.com/heroku/heroku-buildpack-python/pull/1842))
 
 ## [v292] - 2025-07-23
 
@@ -1432,7 +1458,13 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v325...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v331...main
+[v331]: https://github.com/heroku/heroku-buildpack-python/compare/v330...v331
+[v330]: https://github.com/heroku/heroku-buildpack-python/compare/v329...v330
+[v329]: https://github.com/heroku/heroku-buildpack-python/compare/v328...v329
+[v328]: https://github.com/heroku/heroku-buildpack-python/compare/v327...v328
+[v327]: https://github.com/heroku/heroku-buildpack-python/compare/v326...v327
+[v326]: https://github.com/heroku/heroku-buildpack-python/compare/v325...v326
 [v325]: https://github.com/heroku/heroku-buildpack-python/compare/v324...v325
 [v324]: https://github.com/heroku/heroku-buildpack-python/compare/v323...v324
 [v323]: https://github.com/heroku/heroku-buildpack-python/compare/v322...v323
