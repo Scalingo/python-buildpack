@@ -45,9 +45,6 @@ function pipenv::install_pipenv() {
 		local bundled_pip_module_path
 		bundled_pip_module_path="$(utils::bundled_pip_module_path "${python_home}" "${python_major_version}")"
 
-		# We must call the venv Python directly here, rather than relying on pip's `--python`
-		# option, since `--python` was only added in pip v22.3, so isn't supported by the older
-		# pip versions bundled with Python 3.9/3.10.
 		# `--isolated`: Prevents any custom pip configuration added by third party buildpacks (via env
 		#               vars or global config files) from breaking package manager bootstrapping.
 		# shellcheck disable=SC2310 # This function is invoked in an 'if' condition so set -e will be disabled.
@@ -86,11 +83,13 @@ function pipenv::install_pipenv() {
 	export PIPENV_SYSTEM="1"
 	# Hide Pipenv's notice about finding/using an existing virtual environment.
 	export PIPENV_VERBOSITY="-1"
-	# Work around a Pipenv bug when using `--system`, whereby it doesn't correctly install
-	# dependencies that happen to also be a dependency of Pipenv (such as `certifi`).
-	# In general Pipenv's support for its `--system` mode seems very buggy. Longer term we
-	# should explore moving to venvs, however, that will need to be coordinated across all
-	# package managers and also change paths for Python which could break other use cases.
+	# Work around a Pipenv bug when using `--system`, whereby it doesn't correctly install dependencies
+	# that happen to also be a dependency of Pipenv (such as `certifi` and `packaging`). In general
+	# Pipenv's support for its `--system` mode is very buggy. Longer term we should explore moving
+	# to venvs, however, that will need to be coordinated across all package managers and will also
+	# change paths for Python which could break other use cases. Be careful removing this even if the
+	# `pip_basic` test that installs certifi/packaging still passes, since the repro seems to depend
+	# on specific package version combinations / other factors and so the testcase is very fragile.
 	export VIRTUAL_ENV="${python_home}"
 
 	# Set the same env vars in the environment used by later buildpacks.

@@ -56,10 +56,10 @@ The supported Python versions are:
 - Python `3.13`
 - Python `3.12`
 - Python `3.11`
-- Python `3.10`
 
 These Python versions are deprecated on Scalingo:
 
+- Python `3.10`
 - Python `3.9`
 - Python `3.8` (only available on the [scalingo-20](https://doc.scalingo.com/platform/internals/stacks/scalingo-20-stack) stack)
 
