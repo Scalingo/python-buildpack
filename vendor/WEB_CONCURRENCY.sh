@@ -6,17 +6,8 @@
 # gunicorn and uvicorn) to control the default number of server processes that they launch.
 #
 # The default `WEB_CONCURRENCY` value is calculated as the lowest of either:
-# - `<number of dyno CPU cores> * 2 + 1`
-# - `<dyno available RAM in MB> / 256` (to ensure each process has at least 256 MB RAM)
-#
-# Currently, on Heroku dynos this results in the following concurrency values:
-# - Eco / Basic / Standard-1X: 2 (capped by the 512 MB available memory)
-# - Standard-2X / Private-S / Shield-S: 4 (capped by the 1 GB available memory)
-# - Performance-M / Private-M / Shield-M: 5 (based on the 2 CPU cores)
-# - Performance-L / Private-L / Shield-L: 17 (based on the 8 CPU cores)
-# - Performance-L-RAM / Private-L-RAM / Shield-L-RAM: 9 (based on the 4 CPU cores)
-# - Performance-XL / Private-XL / Shield-XL: 17 (based on the 8 CPU cores)
-# - Performance-2XL / Private-2XL / Shield-2XL: 33 (based on the 16 CPU cores)
+# - `<number of container CPU cores> * 2 + 1`
+# - `<container available RAM in MB> / 256` (to ensure each process has at least 256 MB RAM)
 #
 # To override these default values, either set `WEB_CONCURRENCY` as an explicit config var
 # on the app, or pass `--workers <num>` when invoking gunicorn/uvicorn in your Procfile.
@@ -43,10 +34,12 @@ function detect_memory_limit_in_mb() {
 }
 
 function output() {
-	# Only display log output for web dynos, to prevent breaking one-off dyno scripting use-cases,
-	# and to prevent confusion from messages about WEB_CONCURRENCY in the logs of non-web workers.
-	# (We still actually set the env vars for all dyno types for consistency and easier debugging.)
-	if [[ "${DYNO:-}" == web.* ]]; then
+	# Only display log output for web containers, to prevent breaking one-off
+	# container scripting use-cases, and to prevent confusion from messages
+	# about WEB_CONCURRENCY in the logs of non-web workers.
+	# (We still actually set the env vars for all container types for
+	# consistency and easier debugging.)
+	if [[ "${CONTAINER:-}" == web-* ]]; then
 		echo "Python buildpack: $*" >&2
 	fi
 }
@@ -74,6 +67,9 @@ if [[ -v WEB_CONCURRENCY ]]; then
 	output "Skipping automatic configuration of WEB_CONCURRENCY since it's already set."
 	return 0
 fi
+
+# Make it possible to differentiate between user and buildpack set WEB_CONCURRENCY values.
+export WEB_CONCURRENCY_SET_BY="scalingo/python"
 
 minimum_memory_per_process_in_mb=256
 
