@@ -3,6 +3,11 @@
 ## [Unreleased]
 
 
+## [v333] - 2026-02-04
+
+- The Python 3.14 version alias now resolves to Python 3.14.3. ([#2027](https://github.com/heroku/heroku-buildpack-python/pull/2027))
+- The Python 3.13 version alias now resolves to Python 3.13.12. ([#2027](https://github.com/heroku/heroku-buildpack-python/pull/2027))
+
 ## [v332] - 2026-01-26
 
 - Updated Poetry from 2.2.1 to 2.3.1. ([#2019](https://github.com/heroku/heroku-buildpack-python/pull/2019))
@@ -1464,7 +1469,8 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v332...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v333...main
+[v333]: https://github.com/heroku/heroku-buildpack-python/compare/v332...v333
 [v332]: https://github.com/heroku/heroku-buildpack-python/compare/v331...v332
 [v331]: https://github.com/heroku/heroku-buildpack-python/compare/v330...v331
 [v330]: https://github.com/heroku/heroku-buildpack-python/compare/v329...v330
