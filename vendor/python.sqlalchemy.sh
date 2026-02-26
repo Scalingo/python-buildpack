@@ -29,5 +29,5 @@ while IFS= read -r database_url_variable; do
 	# The name of the new env var is created by inserting '_ALCHEMY' before '_URL':
 	set_sql_alchemy_url "${!database_url_variable}" \
 		"${database_url_variable//_URL/}_ALCHEMY_URL"
-done < <( printenv | cut --delimiter='=' --fields1 \
+done < <( printenv | cut --delimiter='=' --fields=1 \
 			| grep --extended-regexp '^SCALINGO_POSTGRESQL_URL' )
