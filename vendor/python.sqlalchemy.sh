@@ -14,7 +14,7 @@ set_sql_alchemy_url() {
 	((${#files[@]} == 0)) && return 0
 
 	if grep --ignore-case --silent "sqlalchemy" "${files[@]}" \
-		&& [[ "${database_url}" == "postgres://*" ]]
+		&& [[ "${database_url}" == postgres://* ]]
 	then
 		# Replace 'postgres://' with 'postgresql://':
 		local full_database_url="${database_url/postgres:\/\//postgresql://}"
@@ -26,12 +26,8 @@ set_sql_alchemy_url() {
 
 while IFS= read -r database_url_variable; do
 	# Use Bash indirect expansion to pass the variable value to the function
-	# Name of the variable is edited to insert '_ALCHEMY' before '_URL':
+	# The name of the new env var is created by inserting '_ALCHEMY' before '_URL':
 	set_sql_alchemy_url "${!database_url_variable}" \
 		"${database_url_variable//_URL/}_ALCHEMY_URL"
-done < <( printenv | cut --delimiter= --fields1 \
-			| grep --extended-regexp='^SCALINGO_POSTGRESQL_URL' )
-
-#for database_url_variable in $( env | awk -F "=" '{print $1}' | grep "SCALINGO_POSTGRESQL_URL" ); do
-#	set_sql_alchemy_url "$( eval echo "\$${database_url_variable}" )" "${database_url_variable//_URL/}_ALCHEMY_URL"
-#done
+done < <( printenv | cut --delimiter='=' --fields1 \
+			| grep --extended-regexp '^SCALINGO_POSTGRESQL_URL' )
