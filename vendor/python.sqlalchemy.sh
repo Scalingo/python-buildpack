@@ -10,7 +10,7 @@ set_sql_alchemy_url() {
 	[[ -f "Pipfile" ]] && files+=("Pipfile")
 	[[ -f "pyproject.toml" ]] && files+=("pyproject.toml")
 
-	# If none exist, exits early:
+	# If none exist, exit early:
 	((${#files[@]} == 0)) && return 0
 
 	if grep --ignore-case --silent "sqlalchemy" "${files[@]}" \
