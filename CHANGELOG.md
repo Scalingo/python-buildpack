@@ -3,6 +3,23 @@
 ## [Unreleased]
 
 
+## [v338] - 2026-03-03
+
+- The Python 3.12 version alias now resolves to Python 3.12.13. ([#2046](https://github.com/heroku/heroku-buildpack-python/pull/2046))
+- The Python 3.11 version alias now resolves to Python 3.11.15. ([#2046](https://github.com/heroku/heroku-buildpack-python/pull/2046))
+- The Python 3.10 version alias now resolves to Python 3.10.20. ([#2046](https://github.com/heroku/heroku-buildpack-python/pull/2046))
+
+## [v337] - 2026-03-03
+
+- Updated pip from 25.3 to 26.0.1. ([#2032](https://github.com/heroku/heroku-buildpack-python/pull/2032))
+- Updated uv from 0.10.1 to 0.10.7. ([#2041](https://github.com/heroku/heroku-buildpack-python/pull/2041))
+- Explicitly configured uv to use hard links to maintain the behaviour of previous versions. ([#2044](https://github.com/heroku/heroku-buildpack-python/pull/2044))
+
+## [v336] - 2026-03-02
+
+- Added a workaround for `nltk.txt` package downloader errors caused by an upstream regression in NLTK v3.9.3. ([#2041](https://github.com/heroku/heroku-buildpack-python/pull/2041))
+- Changed the S3 URL used to download Python to use AWS' dual-stack (IPv6 compatible) endpoint. ([#2035](https://github.com/heroku/heroku-buildpack-python/pull/2035))
+
 ## [v335] - 2026-02-10
 
 - Updated uv from 0.9.29 to 0.10.1. ([#2031](https://github.com/heroku/heroku-buildpack-python/pull/2031))
@@ -1478,7 +1495,10 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v335...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v338...main
+[v338]: https://github.com/heroku/heroku-buildpack-python/compare/v337...v338
+[v337]: https://github.com/heroku/heroku-buildpack-python/compare/v336...v337
+[v336]: https://github.com/heroku/heroku-buildpack-python/compare/v335...v336
 [v335]: https://github.com/heroku/heroku-buildpack-python/compare/v334...v335
 [v334]: https://github.com/heroku/heroku-buildpack-python/compare/v333...v334
 [v333]: https://github.com/heroku/heroku-buildpack-python/compare/v332...v333
