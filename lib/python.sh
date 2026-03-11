@@ -30,9 +30,8 @@ function python::install() {
 		ubuntu_version="${ubuntu_version: -2}.04"
 
 		local arch
-		arch=$( dpkg --print-architecture )
-
-		# e.g.: https://heroku-buildpack-python.s3.us-east-1.amazonaws.com/python-3.13.0-ubuntu-24.04-amd64.tar.zst
+		arch=$(dpkg --print-architecture)
+		# e.g.: https://heroku-buildpack-python.s3.dualstack.us-east-1.amazonaws.com/python-3.14.0-ubuntu-24.04-amd64.tar.zst
 		local python_url="${S3_BASE_URL}/python-${python_full_version}-ubuntu-${ubuntu_version}-${arch}.tar.zst"
 
 		local error_log
@@ -117,7 +116,7 @@ function python::install() {
 					Then try building again to see if the error resolves itself.
 				EOF
 				build_data::set_string "failure_reason" "install-python"
-				# e.g.: 'curl: (6) Could not resolve host: heroku-buildpack-python.s3.us-east-1.amazonaws.com'
+				# e.g.: 'curl: (6) Could not resolve host: heroku-buildpack-python.s3.dualstack.us-east-1.amazonaws.com'
 				build_data::set_string "failure_detail" "$(head --lines=1 "${error_log}" || true)"
 			fi
 
