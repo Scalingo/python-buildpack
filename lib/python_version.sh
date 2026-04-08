@@ -7,8 +7,8 @@ set -euo pipefail
 LATEST_PYTHON_3_10="3.10.20"
 LATEST_PYTHON_3_11="3.11.15"
 LATEST_PYTHON_3_12="3.12.13"
-LATEST_PYTHON_3_13="3.13.12"
-LATEST_PYTHON_3_14="3.14.3"
+LATEST_PYTHON_3_13="3.13.13"
+LATEST_PYTHON_3_14="3.14.4"
 
 OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION=10
 NEWEST_SUPPORTED_PYTHON_3_MINOR_VERSION=14
@@ -128,7 +128,7 @@ function python_version::read_requested_python_version() {
 		fi
 	fi
 
-	# Protect against unsupported (eg PyPy) or invalid versions being found in the cache metadata.
+	# Protect against unsupported (e.g. PyPy) or invalid versions being found in the cache metadata.
 	if [[ "${cached_python_full_version}" =~ ^${PYTHON_FULL_VERSION_REGEX}$ ]]; then
 		local cached_python_major_version="${cached_python_full_version%.*}"
 		version="${cached_python_major_version}"
