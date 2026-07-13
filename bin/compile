@@ -75,7 +75,7 @@ python_home="/app/.scalingo/python"
 # using `/app` paths which will still work at run-time after relocation. Amongst other things, this
 # ensures that the shebang lines in the entrypoint scripts of installed packages are correct.
 export PATH="/app/.scalingo/python/bin:${PATH}"
-# Tell Python to not buffer it's stdin/stdout.
+# Disable Python's output buffering to ensure logs aren't dropped if an app crashes.
 export PYTHONUNBUFFERED=1
 # Set the locale to a well-known and expected standard.
 export LANG="en_US.UTF-8"
