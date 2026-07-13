@@ -16,7 +16,8 @@
 # exit on error, have to use return not exit, and returning non-zero doesn't have an effect.
 
 function detect_memory_limit_in_mb() {
-	local memory_limit_file='/sys/fs/cgroup/memory/memory.limit_in_bytes'
+	local cgroup_root="${WEB_CONCURRENCY_CGROUP_ROOT:-/sys/fs/cgroup}"
+	local memory_limit_file="${cgroup_root}/memory/memory.limit_in_bytes"
 
 	# This memory limits file only exists on Heroku, or when using cgroups v1 (Docker < 20.10).
 	if [[ -f "${memory_limit_file}" ]]; then
@@ -26,6 +27,19 @@ function detect_memory_limit_in_mb() {
 		# bogus value of thousands of TB RAM when there is no container memory limit set.
 		if ((memory_limit_in_mb <= 1048576)); then
 			echo "${memory_limit_in_mb}"
+			return 0
+		fi
+	fi
+
+	memory_limit_file="${cgroup_root}/memory.max"
+
+	# cgroups v2 reports the memory limit in memory.max, or "max" when no limit is set.
+	if [[ -f "${memory_limit_file}" ]]; then
+		local memory_limit_in_bytes
+		memory_limit_in_bytes="$(cat "${memory_limit_file}")"
+
+		if [[ "${memory_limit_in_bytes}" != 'max' ]]; then
+			echo "$((memory_limit_in_bytes / 1048576))"
 			return 0
 		fi
 	fi
