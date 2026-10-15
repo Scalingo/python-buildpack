@@ -3,6 +3,17 @@
 ## [Unreleased]
 
 
+## [v356] - 2026-10-14
+
+- Updated Pipenv from 2026.8.0 to 2026.9.1. ([#2163](https://github.com/heroku/heroku-buildpack-python/pull/2163))
+- Updated uv from 0.12.21 to 0.13.1. ([#2163](https://github.com/heroku/heroku-buildpack-python/pull/2163))
+
+## [v355] - 2026-10-09
+
+- Added support for Python 3.15. ([#2160](https://github.com/heroku/heroku-buildpack-python/pull/2160))
+- Fixed editable install path rewriting for some less common build backend configurations that use hook modules rather than static `.pth` files, such as hatchling's `dev-mode-exact` mode. ([#2158](https://github.com/heroku/heroku-buildpack-python/pull/2158))
+- Removed editable install path rewriting for `.egg-link` files, since no supported package manager creates them any more. ([#2158](https://github.com/heroku/heroku-buildpack-python/pull/2158))
+
 ## [v354] - 2026-10-02
 
 - Updated Poetry from 2.4.2 to 2.5.1. ([#2147](https://github.com/heroku/heroku-buildpack-python/pull/2147))
@@ -1586,7 +1597,9 @@ Default Python is now latest 2.7.10. Updated pip and Distribute.
 - Setuptools updated to v16.0
 - pip updated to v7.0.1
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v354...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-python/compare/v356...main
+[v356]: https://github.com/heroku/heroku-buildpack-python/compare/v355...v356
+[v355]: https://github.com/heroku/heroku-buildpack-python/compare/v354...v355
 [v354]: https://github.com/heroku/heroku-buildpack-python/compare/v353...v354
 [v353]: https://github.com/heroku/heroku-buildpack-python/compare/v352...v353
 [v352]: https://github.com/heroku/heroku-buildpack-python/compare/v351...v352
