@@ -14,7 +14,7 @@ LATEST_PYTHON_3_15="3.15.2"
 OLDEST_SUPPORTED_PYTHON_3_MINOR_VERSION=10
 NEWEST_SUPPORTED_PYTHON_3_MINOR_VERSION=15
 
-DEFAULT_PYTHON_FULL_VERSION="${LATEST_PYTHON_3_13}"
+DEFAULT_PYTHON_FULL_VERSION="${LATEST_PYTHON_3_14}"
 DEFAULT_PYTHON_MAJOR_VERSION="${DEFAULT_PYTHON_FULL_VERSION%.*}"
 
 # Integer with no redundant leading zeros.
@@ -692,8 +692,8 @@ function python_version::warn_if_deprecated_major_version() {
 		output::warning <<-EOF
 			Warning: Support for Python 3.10 is deprecated!
 
-			Python 3.10 will reach its upstream end-of-life in October 2026,
-			at which point it will no longer receive security updates:
+			Python 3.10 reached its upstream end-of-life on 1st October 2026,
+			and so no longer receives security updates:
 			https://devguide.python.org/versions/#supported-versions
 
 			As such, support for Python 3.10 will be removed from this
@@ -704,6 +704,20 @@ function python_version::warn_if_deprecated_major_version() {
 
 			For more information, see:
 			https://doc.scalingo.com/languages/python/start#availability
+		EOF
+	elif [[ "${requested_major_version}" == "3.11" ]]; then
+		output::warning <<-EOF
+			Warning: Support for Python 3.11 is deprecated!
+
+			Python 3.11 will reach its upstream end-of-life in October 2027,
+			at which point it will no longer receive security updates:
+			https://devguide.python.org/versions/#supported-versions
+
+			As such, support for Python 3.11 will be removed from this
+			buildpack on 5th January 2028.
+
+			Upgrade to a newer Python version as soon as possible, by
+			changing the version in your ${version_origin} file.
 		EOF
 	fi
 }
