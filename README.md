@@ -48,7 +48,7 @@ the first build of an app, and then subsequent builds of that app will be
 pinned to that version unless the build cache is cleared or you request a
 different version.
 
-The current default Python version is: 3.14
+The current default Python version is `3.14`.
 
 The supported Python versions are:
 
@@ -56,13 +56,6 @@ The supported Python versions are:
 - Python `3.14`
 - Python `3.13`
 - Python `3.12`
-- Python `3.11`
-
-These Python versions are deprecated on Scalingo:
-
-- Python `3.10`
-- Python `3.9`
-- Python `3.8` (only available on the [scalingo-20](https://doc.scalingo.com/platform/internals/stacks/scalingo-20-stack) stack)
 
 Python versions older than those listed above are no longer supported, since
 they have reached end-of-life [upstream](https://devguide.python.org/versions/#supported-versions).
