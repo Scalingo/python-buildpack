@@ -19,12 +19,14 @@ function cache::cached_python_full_version() {
 }
 
 # Validates and restores the contents of the build cache if appropriate.
-# The cache is discarded if any of the following have changed:
-# - Stack
-# - Python version
-# - Package manager
-# - Package manager version
-# - requirements.txt contents (pip only)
+# The cache is discarded if any of the following are true:
+# - The stack has changed.
+# - The Python version has changed.
+# - The package manager or its version has changed.
+# - The package manager's lockfile/requirements contents have changed
+#   (requirements.txt for pip, Pipfile.lock for Pipenv).
+# - The cache was created by a buildpack version too old to have the build data store.
+# - The legacy SQLite3 headers need uninstalling (carried over from older buildpack versions).
 function cache::restore() {
 	local build_dir="${1}"
 	local cache_dir="${2}"
@@ -85,9 +87,11 @@ function cache::restore() {
 				if [[ "${cached_pipenv_version}" != "${PIPENV_VERSION:?}" ]]; then
 					cache_invalidation_reasons+=("The Pipenv version has changed from ${cached_pipenv_version:-"unknown"} to ${PIPENV_VERSION}")
 				fi
-				# `pipenv {install,sync}` by design don't actually uninstall packages on their own (!!):
-				# and we can't use `pipenv clean` since it isn't compatible with `--system`.
+				# `pipenv {install,sync}` by default don't uninstall packages removed from the lockfile:
 				# https://github.com/pypa/pipenv/issues/3365
+				# We can't use `pipenv clean` or `pipenv sync --clean` since neither works with `--system`.
+				# If we move to installing into a venv (for parity with the CNB), we can use `--clean`
+				# instead and remove this check.
 				# We have to explicitly check for the presence of the Pipfile.lock.sha256 file,
 				# since we only started writing it to the build cache as of buildpack v292 (released 2025-07-23).
 				local pipfile_lock_checksum_file="${cache_dir}/.scalingo/python/Pipfile.lock.sha256"
@@ -180,7 +184,7 @@ function cache::save() {
 	# and cache directory are on the same filesystem mount - which is the case for standard builds
 	# but not Heroku CI or build-in-app-dir. Ideally we would be able to use `--reflink=auto` here
 	# (which would avoid the need for a conditional and also mean accidental edits by users in later
-	# buildpacks to one location doesn't affect the other), however, with the current filesystems
+	# buildpacks to one location don't affect the other), however, with the current filesystems
 	# used in production benchmarking showed `--reflink=auto` was much slower than hardlinks.
 	if [[ "${build_dir_filesystem}" == "${cache_dir_filesystem}" ]]; then
 		local additional_copy_args=(--link)
